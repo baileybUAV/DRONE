@@ -1,0 +1,155 @@
+#takeoff, hover for 60 seconds, go forward 5 meters, hover 60 seconds, land
+
+from dronekit import connect, VehicleMode, LocationGlobalRelative
+from pymavlink import mavutil
+import time
+import sys
+
+# Connect to the UAV
+vehicle = connect('/dev/serial0', baud=57600, wait_ready=True)
+
+# Placeholder GPS coordinates for geofence boundary (Update these later!)
+GEOFENCE_BOUNDARY = {
+    "lat_min": 0.000000,  # TODO: Update this with actual GPS latitude minimum
+    "lat_max": 0.000000,  # TODO: Update this with actual GPS latitude maximum
+    "lon_min": 0.000000,  # TODO: Update this with actual GPS longitude minimum
+    "lon_max": 0.000000   # TODO: Update this with actual GPS longitude maximum
+}
+
+# Function to get altitude from LiDAR (read from flight controller)
+def get_lidar_altitude():
+    """
+    Reads the altitude from the LW20/C LiDAR connected to the flight controller via I2C.
+    Falls back to GPS altitude if LiDAR data is unavailable.
+    """
+    lidar_alt = vehicle.rangefinder.distance  # Read altitude from LiDAR
+    if lidar_alt is None or lidar_alt <= 0:
+        print("LiDAR data unavailable! Using GPS altitude as fallback.")
+        return vehicle.location.global_relative_frame.alt  # Use GPS altitude as backup
+    return lidar_alt
+
+# Function to check geofence and trigger RTL if UAV is too close to boundary
+def check_geofence():
+    """
+    Monitors the UAV's GPS position and triggers RTL if within 1 meter of the geofence boundary.
+    """
+    lat = vehicle.location.global_relative_frame.lat
+    lon = vehicle.location.global_relative_frame.lon
+
+    # Check if the UAV is within 1 meter (~0.000009 degrees) of the boundary
+    buffer = 0.000009  # Rough GPS equivalent of ~1 meter
+    if (
+        lat <= GEOFENCE_BOUNDARY["lat_min"] + buffer or
+        lat >= GEOFENCE_BOUNDARY["lat_max"] - buffer or
+        lon <= GEOFENCE_BOUNDARY["lon_min"] + buffer or
+        lon >= GEOFENCE_BOUNDARY["lon_max"] - buffer
+    ):
+        print("🚨 Geofence Breach Warning: UAV near boundary! Triggering RTL. 🚨")
+        vehicle.mode = VehicleMode("RTL")
+        sys.exit()  # Exit script to allow full RTL control
+
+# Function to wait for the UAV to be armed
+def wait_for_arm():
+    print("Waiting for the UAV to be armed...")
+    while not vehicle.armed:
+        check_failsafe()
+        time.sleep(0.5)
+    print("UAV Armed! Beginning test flight.")
+
+# Function to take off using a set velocity with LiDAR altitude monitoring
+def custom_takeoff(target_altitude, climb_rate=1.0):
+    """
+    Takes off at a controlled velocity and uses LiDAR to monitor altitude.
+    """
+    print("Arming motors...")
+    vehicle.mode = VehicleMode("GUIDED")
+    while vehicle.mode.name != "GUIDED":
+        time.sleep(0.5)
+
+    vehicle.armed = True
+    wait_for_arm()
+
+    print(f"Taking off to {target_altitude} meters at {climb_rate} m/s...")
+
+    while get_lidar_altitude() < target_altitude * 0.95:
+        check_failsafe()
+        check_geofence()
+        send_velocity(0, 0, -climb_rate, 1)
+        print(f"Current Altitude (LiDAR): {get_lidar_altitude():.2f} meters")
+        time.sleep(1)
+
+    print("Target altitude reached!")
+
+# Function to send velocity-based movement commands
+def send_velocity(vx, vy, vz, duration):
+    """
+    Sends a velocity command to move the UAV.
+    """
+    msg = vehicle.message_factory.set_position_target_local_ned_encode(
+        0, 0, 0,
+        mavutil.mavlink.MAV_FRAME_BODY_NED,
+        0b0000111111000111,
+        0, 0, 0,
+        vx, vy, vz,
+        0, 0, 0,
+        0, 0
+    )
+
+    for _ in range(duration):
+        check_failsafe()
+        check_geofence()
+        vehicle.send_mavlink(msg)
+        time.sleep(1)
+
+# Function to monitor failsafe switch and stop script execution
+def check_failsafe():
+    """
+    Monitors RC channel for failsafe activation.
+    If triggered, cancels the script and gives full manual control back to the transmitter.
+    """
+    failsafe_channel = 11  # TODO: Confirm correct RC channel for failsafe switch
+    failsafe_pwm_threshold = 1500  # TODO: Confirm the correct PWM threshold for failsafe activation
+
+    rc_value = vehicle.channels.get(failsafe_channel, 0)
+    if rc_value > failsafe_pwm_threshold:
+        print("🚨 Failsafe Activated! Cancelling autonomous flight and returning manual control. 🚨")
+        vehicle.close()
+        sys.exit()
+
+# Function to immediately cut motor power using RC10
+def emergency_motor_cutoff():
+    """
+    Cuts motor power instantly when the assigned switch (RC10) is activated.
+    """
+    cutoff_channel = 10  # TODO: Confirm correct RC channel for motor cutoff switch
+    cutoff_pwm_threshold = 1500  # TODO: Confirm the correct PWM threshold for activation
+
+    while True:
+        rc_value = vehicle.channels.get(cutoff_channel, 0)
+        if rc_value > cutoff_pwm_threshold:
+            print("🚨 Emergency Motor Cutoff Activated! Disarming UAV. 🚨")
+            vehicle.armed = False  # Disarm the UAV to cut motor power
+            sys.exit()
+        time.sleep(0.5)
+
+# Execute the test flight sequence
+custom_takeoff(3, climb_rate=1.0)  # Take off to 3m altitude at 1 m/s
+
+print("Hovering for 1 minute...")
+time.sleep(60)
+
+print("Flying forward 5 meters...")
+send_velocity(1, 0, 0, 5)
+
+print("Hovering for another 1 minute...")
+time.sleep(60)
+
+print("Landing...")
+vehicle.mode = VehicleMode("LAND")
+
+# Wait until the UAV is fully landed
+while vehicle.armed:
+    time.sleep(1)
+
+print("Landed successfully!")
+vehicle.close()
