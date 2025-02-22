@@ -43,8 +43,8 @@ detector = HomogeneousBgDetector(aruco_dict, parameters)
 
 # Open webcam
 cap = cv2.VideoCapture(0)
-cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, 4656)
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 3496)
 
 # Main loop
 while True:
