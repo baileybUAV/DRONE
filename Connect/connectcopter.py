@@ -1,4 +1,4 @@
-from dronekit import connect, VehicleMode, LocationGlobalRelative, APIException
+from dronekit import connect, VehicleMode, LocationGlobalRelative
 import time
 import socket
 import math
@@ -23,3 +23,6 @@ def connectMyCopter():
   print (" Mode: %s" % vehicle.mode.name)    
 
   return vehicle
+
+vehicle = connectMyCopter()
+print("Connected")

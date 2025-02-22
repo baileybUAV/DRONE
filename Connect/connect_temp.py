@@ -7,6 +7,7 @@ connection_string = "/dev/ttyAMA0"
 # import the DroneKit-Python library.
 from dronekit import connect, VehicleMode
 
+print("Start Connection")
 # Connect the vehicle
 print("The vehicle is connecting at this address: %s" % (connection_string,))
 # Connect to the vehicle with the specified connection information and wait for the connection to complete.
@@ -19,8 +20,6 @@ print (" GPS: %s" % vehicle.gps_0)
 print (" Battery: %s" % vehicle.battery)
 print (" ARMable?: %s" % vehicle.is_armable)
 print (" Mode: %s" % vehicle.mode.name)    
-# Disconnect from the simulation before exiting the programme.
-vehicle.close()
 
 
 # Print the message "Completed" on the screen.
