@@ -1,7 +1,7 @@
 from dronekit import connect, VehicleMode, LocationGlobalRelative, APIException
 import time
 import socket
-import sys
+import exceptions
 import math
 import argparse
 
