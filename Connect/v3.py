@@ -1,20 +1,28 @@
-from dronekit import connect, VehicleMode, LocationGlobalRelative, APIException
+from dronekit import connect, VehicleMode, LocationGlobalRelative
 import time
+import future
 import socket
-import exceptions
 import math
 import argparse
+import os
 
+print("Start Connection")
 def connectMyCopter():
-    parser = argparse.ArgumentParser(description='commands)')
-    parser.add_argument('--connect')
-    args = parser.parse_args()
-    connection_string = args.connect
-    baud_rate = 57600
+  parser = argparse.ArgumentParser(description='commands')
+  parser.add_argument('--connect')
+  args = parser.parse_args()
 
-    vehicle = connect(connection_string,baud=baud_rate,wait_ready=True)
-    return vehicle
+  connection_string = "/dev/ttyAMA0"
+  baud_rate = 57600
+
+  print("Connecting...")
+  vehicle = connect(connection_string,baud=baud_rate) #,wait_ready=True)
+  print (" GPS: %s" % vehicle.gps_0)
+  print (" Battery: %s" % vehicle.battery)
+  print (" ARMable?: %s" % vehicle.is_armable)
+  print (" Mode: %s" % vehicle.mode.name)    
+
+  return vehicle
 
 vehicle = connectMyCopter()
-
-print('connected')
+print("Connected")
