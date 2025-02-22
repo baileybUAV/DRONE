@@ -9,7 +9,7 @@ def connectMyCopter():
     parser = argparse.ArgumentParser(description='commands)')
     parser.add_argument('--connect')
     args = parser.parse_args()
-    connection_string = arg.connect
+    connection_string = args.connect
     baud_rate = 57600
 
     vehicle = connect(connection_string,baud=baud_rate,wait_ready=true)
