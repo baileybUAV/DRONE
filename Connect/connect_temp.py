@@ -2,7 +2,7 @@
 print ("initiating connection")
 
 # The port to which the FCC connects to the rpi is our connection address. 
-connection_string = "serial0"
+connection_string = "/dev/ttyAMA0"
 
 # import the DroneKit-Python library.
 from dronekit import connect, VehicleMode
