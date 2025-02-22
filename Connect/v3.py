@@ -12,7 +12,7 @@ def connectMyCopter():
     connection_string = args.connect
     baud_rate = 57600
 
-    vehicle = connect(connection_string,baud=baud_rate,wait_ready=true)
+    vehicle = connect(connection_string,baud=baud_rate,wait_ready=True)
     return vehicle
 
 vehicle = connectMyCopter()
