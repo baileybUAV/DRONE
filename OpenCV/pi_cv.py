@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-
+from picamera2 import Picamera2
 
 class HomogeneousBgDetector:
     def __init__(self, aruco_dict, aruco_parameters):
@@ -14,7 +14,6 @@ class HomogeneousBgDetector:
         corners, ids, _ = self.aruco_detector.detectMarkers(gray)
 
         return corners, ids
-
 
 # Initialize ArUco Detector
 parameters = cv2.aruco.DetectorParameters()
@@ -41,16 +40,18 @@ marker_corners_3d = np.array([
 # Load Object Detector
 detector = HomogeneousBgDetector(aruco_dict, parameters)
 
-# Open webcam
-cap = cv2.VideoCapture(0)
-cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+# Initialize Raspberry Pi Camera
+picam2 = Picamera2()
+config = picam2.create_preview_configuration(main={"size": (1280, 720), "format": "RGB888"})
+picam2.configure(config)
+picam2.start()
 
 # Main loop
 while True:
-    ret, img = cap.read()
-    if not ret:
-        break
+    img = picam2.capture_array()
+    
+    # Convert to BGR for OpenCV compatibility
+    img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
 
     # Detect ArUco objects
     corners, ids = detector.detect_aruco_objects(img)
@@ -89,5 +90,4 @@ while True:
         break
 
 # Release resources
-cap.release()
 cv2.destroyAllWindows()
