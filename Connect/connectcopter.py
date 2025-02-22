@@ -1,7 +1,6 @@
 from dronekit import connect, VehicleMode, LocationGlobalRelative
 import time
 import future
-import exceptions
 import socket
 import math
 import argparse
