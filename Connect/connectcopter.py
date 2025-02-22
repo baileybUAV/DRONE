@@ -5,6 +5,7 @@ import math
 import argparse
 import os
 
+print("Start Connection")
 def connectMyCopter():
   parser = argparse.ArgumentParser(description='commands')
   parser.add_argument('--connect')
