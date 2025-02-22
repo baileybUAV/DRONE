@@ -16,7 +16,7 @@ def connectMyCopter():
 
   print("Connecting...")
   vehicle = connect(connection_string,baud=baud_rate) #,wait_ready=True)
-  print  ("Vehicle Status:", vehicle.mode_mapping())
+  print  ("Vehicle Status:", vehicle._mode_mapping())
   print("Avaible Modes:", vehicle.mode_mapping)
   print (" GPS: %s" % vehicle.gps_0)
   print (" Battery: %s" % vehicle.battery)
