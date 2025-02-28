@@ -55,8 +55,7 @@ picam2.start()
 while True:
     #ret, img = cap.read()
     img = picam2.capture_array()
-    if not ret:
-        break
+    
 
     # Detect ArUco objects
     corners, ids = detector.detect_aruco_objects(img)
