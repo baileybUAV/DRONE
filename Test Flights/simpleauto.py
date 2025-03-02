@@ -6,6 +6,7 @@ import socket
 import math
 import argparse
 import os
+import threading
 
 
 # Connect to the Vehicle function
@@ -82,6 +83,16 @@ def loiter(duration):
   while vehicle.armed:
     time.sleep(duration)
 
+# Function to check for user input to switch mode
+def check_for_switch():
+    global running
+    while running:
+        user_input = input().strip().lower()  # Listens for keyboard input
+        if user_input == 's':
+            print("\n[EMERGENCY] Switching to STABILIZE mode! Manual Control Enabled.")
+            vehicle.mode = VehicleMode("STABILIZE")
+            running = False  # Stop the mission loop
+
 def Land():
 ##This function ensures that the vehicle has landed (before vechile.close is called)
 
@@ -95,15 +106,25 @@ def Land():
   vehicle.close()
 
 
+
+
 #----begin programming form here
 
 
 ##----------------------------------------------------------------------------------------------------------------->
+
+
 print("MAIN:  Code Started")
+# Start a separate thread to listen for emergency switch input
+running = True
+threading.Thread(target=check_for_switch, daemon=True).start()
+
+
 manaul_arm()
 print("MAIN:  Manual Arm Success")
 takeoff(1) # In meters
 print("MAIN:  TakeOff Completed")
+print("\nPress 's' at any time to switch to STABILIZE mode and take manual control.")
 loiter(10) # Duration of loiter mode
 print("MAIN:  LOITER Completed")
 Land()
