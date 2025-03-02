@@ -90,7 +90,7 @@ def check_for_switch():
         user_input = input().strip().lower()  # Listens for keyboard input
         if user_input == 's':
             print("\n[EMERGENCY] Switching to STABILIZE mode! Manual Control Enabled.")
-            vehicle.mode = VehicleMode("STABILIZE")
+            vehicle.mode = VehicleMode("ALT HOLD")
             running = False  # Stop the mission loop
 
 def Land():
