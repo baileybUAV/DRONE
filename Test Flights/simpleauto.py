@@ -25,7 +25,7 @@ def connectMyCopter():
   print("Armable?: %s" % vehicle.is_armable)
   print("Height from Lidar: " % vehicle.rangefinder)
   print("Mode: %s" % vehicle.mode.name)    
-
+  print("GPS Location: " % vehicle.location.global_frame)  
   return vehicle
 
   
@@ -102,7 +102,7 @@ def Land():
 print("MAIN:  Code Started")
 manaul_arm()
 print("MAIN:  Manual Arm Success")
-takeoff(5) # In meters
+takeoff(1) # In meters
 print("MAIN:  TakeOff Completed")
 loiter(10) # Duration of loiter mode
 print("MAIN:  LOITER Completed")
