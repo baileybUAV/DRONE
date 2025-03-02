@@ -1,5 +1,6 @@
 from dronekit import connect, VehicleMode, LocationGlobalRelative, APIException
 from pymavlink import mavutil
+from geopy.distance import distance as geopy_distance
 import time
 import future
 import socket
@@ -24,7 +25,8 @@ def connectMyCopter():
   print("Battery: %s" % vehicle.battery)
   print("Armable?: %s" % vehicle.is_armable)
   print("Height from Lidar: " % vehicle.rangefinder)
-  print("Mode: %s" % vehicle.mode.name)    
+  print("Mode: %s" % vehicle.mode.name)
+  print("GPS Location: " % vehicle.location.global_frame)    
 
   return vehicle
 
@@ -73,15 +75,27 @@ def takeoff(aTargetAltitude):
     time.sleep(1)
 
 
-def fly_forward(distance):
-    print("Flying forward for {} meters".format(distance))
-    vehicle.simple_goto(LocationGlobalRelative(vehicle.location.global_frame.lat + (distance / 111320), vehicle.location.global_frame.lon, vehicle.location.global_relative_frame.alt))
-    time.sleep(1)
+# Function to move forward by a specified distance in meters
+def move_forward(distance_meters):
+    print(f"Moving forward by {distance_meters} meters")
 
-def fly_backward(distance):
-    print("Flying backward for {} meters".format(distance))
-    vehicle.simple_goto(LocationGlobalRelative(vehicle.location.global_frame.lat - (distance / 111320), vehicle.location.global_frame.lon, vehicle.location.global_relative_frame.alt))
-    time.sleep(1)
+    # Get current GPS location
+    current_location = vehicle.location.global_frame
+    lat, lon = current_location.lat, current_location.lon
+
+    # Compute new location using geopy
+    new_location = geopy_distance(meters=distance_meters).destination((lat, lon), bearing=0)
+
+    new_lat, new_lon = new_location.latitude, new_location.longitude
+    print(f"New Target Location: Lat {new_lat}, Lon {new_lon}")
+
+    # Command the drone to move to the new GPS location
+    vehicle.airspeed = 3  # Set speed
+    vehicle.simple_goto(LocationGlobalRelative(new_lat, new_lon, current_location.alt))
+
+    # Wait for a short duration to allow movement
+    time.sleep(5)
+    print("Reached new location")
 
 def loiter(duration):
   print("Switching to Loiter")
@@ -92,6 +106,12 @@ def loiter(duration):
   print("Height from Lidar: " % vehicle.rangefinder)
   while vehicle.armed:
     time.sleep(duration)
+
+
+def RTL():
+  time.sleep(1)
+  print("Returning to Launch")
+  vehicle.mode = VehicleMode("RTL")
 
 def Land():
 ##This function ensures that the vehicle has landed (before vechile.close is called)
@@ -111,17 +131,20 @@ def Land():
 
 ##----------------------------------------------------------------------------------------------------------------->
 print("MAIN:  Code Started")
+
 manaul_arm()
 print("MAIN:  Manual Arm Success")
+
 takeoff(5) # In meters
 print("MAIN:  TakeOff Completed")
+
 loiter(2) # Duration of loiter mode
 print("MAIN:  LOITER Completed")
-fly_forward(5) #In meters
-print("MAIN:  Forward Completed")
+
+move_forward(5) # Move forward in XX meters
+print("MAIN:  GO-TO Completed")
+
 loiter(2) # Duration of loiter mode
-fly_backward(5) #In meters
-print("MAIN:  Backward Completed")
-loiter(2) # Duration of loiter mode
-Land()
+RTL()
+
 print("MAIN: IF DRONE IS NOT UPSIDE DOWN, CONGRATS!")
