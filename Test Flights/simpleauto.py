@@ -24,7 +24,7 @@ def connectMyCopter():
   print("GPS: %s" % vehicle.gps_0)
   print("Battery: %s" % vehicle.battery)
   print("Armable?: %s" % vehicle.is_armable)
-  print("Height from Lidar: " % vehicle.rangefinder)
+  
   print("Mode: %s" % vehicle.mode.name)    
   print("GPS Location: " % vehicle.location.global_frame)  
   return vehicle
@@ -69,7 +69,7 @@ def takeoff(aTargetAltitude):
     #Break and return from function just below target altitude
     if vehicle.location.global_relative_frame.alt>=aTargetAltitude*0.95:
       print ("Reached target altitude")
-      print("Height from Lidar: " % vehicle.rangefinder)
+      
       break
     time.sleep(1)
 
@@ -79,7 +79,6 @@ def loiter(duration):
   time.sleep(1)
   vehicle.mode = VehicleMode("Loiter")
   print("Mode: %s" % vehicle.mode.name)
-  print("Height from Lidar: " % vehicle.rangefinder)
   while vehicle.armed:
     time.sleep(duration)
 
