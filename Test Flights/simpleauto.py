@@ -76,7 +76,7 @@ def loiter(duration):
   print("Switching to Loiter")
   ##thread_distance.join()
   time.sleep(1)
-  vehicle.mode = VehicleMode("Loiter")
+  vehicle.mode = VehicleMode("LOITER")
   print("Mode: %s" % vehicle.mode.name)
   while vehicle.armed:
     time.sleep(duration)
