@@ -71,20 +71,13 @@ def Land():
 
 
 ##----------------------------------------------------------------------------------------------------------------->
-try:
-        while True:
 
 
-                vehicle = connectMyCopter()
 
-                arm_and_takeoff(1)
-                time.sleep(10)
+vehicle = connectMyCopter()
 
-                Land()
-                pass
-except KeyboardInterrupt:
-        pass
+arm_and_takeoff(1)
+time.sleep(10)
+
 Land()
-vehicle.armed= False
-vehicle.close()
-##----------------------------------------------------------------------------------------------------------------->
+                
