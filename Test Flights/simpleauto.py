@@ -72,14 +72,6 @@ def takeoff(aTargetAltitude):
       break
     time.sleep(1)
 
-def loiter(duration):
-  print("Switching to Loiter")
-  ##thread_distance.join()
-  time.sleep(1)
-  vehicle.mode = VehicleMode("LOITER")
-  print("Mode: %s" % vehicle.mode.name)
-  while vehicle.armed:
-    time.sleep(duration)
 
 # Function to check for user input to switch mode
 def check_for_switch():
@@ -121,9 +113,7 @@ threading.Thread(target=check_for_switch, daemon=True).start()
 manaul_arm()
 print("MAIN:  Manual Arm Success")
 takeoff(1) # In meters
-print("MAIN:  TakeOff Completed")
 print("\nPress 's' at any time to switch to STABILIZE mode and take manual control.")
-loiter(10) # Duration of loiter mode
-print("MAIN:  LOITER Completed")
+print("MAIN:  TakeOff Completed")
 Land()
 print("MAIN: IF DRONE IS NOT UPSIDE DOWN, CONGRATS!")
