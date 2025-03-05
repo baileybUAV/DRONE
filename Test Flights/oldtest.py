@@ -19,7 +19,7 @@ def connectMyCopter():
   print("GPS: %s" % vehicle.gps_0)
   print("Battery: %s" % vehicle.battery)
   print("Armable?: %s" % vehicle.is_armable)
-  print("Height from Lidar: " % vehicle.rangefinder)
+ 
   print("Mode: %s" % vehicle.mode.name)    
 
   return vehicle
