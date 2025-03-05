@@ -77,7 +77,7 @@ try:
 
                 vehicle = connectMyCopter()
 
-                arm_and_takeoff(12)
+                arm_and_takeoff(1)
                 time.sleep(10)
 
                 Land()
