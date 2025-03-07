@@ -24,7 +24,7 @@ def connectMyCopter():
   print("GPS: %s" % vehicle.gps_0)
   print("Battery: %s" % vehicle.battery)
   print("Armable?: %s" % vehicle.is_armable)
-  
+  #print("Height from Lidar: " % vehicle.rangefinder1)
   print("Mode: %s" % vehicle.mode.name)     
   return vehicle
 
@@ -66,22 +66,14 @@ def takeoff(aTargetAltitude):
   while True:
     print ("Altitude: ", vehicle.location.global_relative_frame.alt)
     #Break and return from function just below target altitude
-    if vehicle.location.global_relative_frame.alt>=aTargetAltitude*0.95:
+    if vehicle.location.global_relative_frame.alt>=aTargetAltitude*0.80:
       print ("Reached target altitude")
       
       break
     time.sleep(1)
 
 
-# Function to check for user input to switch mode
-def check_for_switch():
-    global running
-    while running:
-        user_input = input().strip().lower()  # Listens for keyboard input
-        if user_input == 's':
-            print("\n[EMERGENCY] Switching to STABILIZE mode! Manual Control Enabled.")
-            vehicle.mode = VehicleMode("ALT HOLD")
-            running = False  # Stop the mission loop
+
 
 def Land():
 ##This function ensures that the vehicle has landed (before vechile.close is called)
@@ -105,15 +97,12 @@ def Land():
 
 
 print("MAIN:  Code Started")
-# Start a separate thread to listen for emergency switch input
-running = True
-threading.Thread(target=check_for_switch, daemon=True).start()
-
 
 manaul_arm()
 print("MAIN:  Manual Arm Success")
+
 takeoff(1) # In meters
-print("\nPress 's' at any time to switch to STABILIZE mode and take manual control.")
 print("MAIN:  TakeOff Completed")
+
 Land()
 print("MAIN: IF DRONE IS NOT UPSIDE DOWN, CONGRATS!")

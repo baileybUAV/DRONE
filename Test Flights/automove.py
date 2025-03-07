@@ -37,90 +37,65 @@ print("Connected")
 
 #Wait for manual arming function
 def manaul_arm():
-  print ("Pre-arm checks")
+  print ("    Pre-arm checks")
   # Don't let the user try to arm until autopilot is ready
   while not vehicle.is_armable:
-    print ("Waiting for vehicle to initialise...")
+    print ("    Waiting for vehicle to initialise...")
     time.sleep(1)
 
   while not vehicle.armed:
-    print ("Waiting for arming...")
+    print ("    Waiting for arming...")
     time.sleep(1)
 
-  print("Waiting for manual arming...")
+  print("   Waiting for manual arming...")
   while not vehicle.armed:
-    print("Waiting for arming...")
+    print("   Waiting for arming...")
     time.sleep(1)
 
-  vehicle.mode = VehicleMode("GUIDED")
+  vehicle.mode = VehicleMode("    GUIDED")
 
-  print("Vehicle armed.")
-  print("Mode: %s" % vehicle.mode.name) 
+  print("   Vehicle armed.")
+  print("   Mode: %s" % vehicle.mode.name) 
 
 
 # Function to arm and then takeoff to a specified altitude
 def takeoff(aTargetAltitude):
 
-  print ("Taking off!")
+  print ("    Taking off!")
   vehicle.simple_takeoff(aTargetAltitude) # Take off to target altitude
 
   # Check that vehicle has reached takeoff altitude
   while True:
-    print ("Altitude: ", vehicle.location.global_relative_frame.alt)
+    print ("    Altitude: ", vehicle.location.global_relative_frame.alt)
     #Break and return from function just below target altitude
     if vehicle.location.global_relative_frame.alt>=aTargetAltitude*0.95:
-      print ("Reached target altitude")
-      print("Height from Lidar: " % vehicle.rangefinder)
+      print ("    Reached target altitude")
+      #print("Height from Lidar: " % vehicle.rangefinder1)
       break
     time.sleep(1)
 
 
-# Function to move forward by a specified distance in meters
-def move_forward(distance_meters):
-    print(f"Moving forward by {distance_meters} meters")
 
-    # Get current GPS location
-    current_location = vehicle.location.global_frame
-    lat, lon = current_location.lat, current_location.lon
 
-    # Compute new location using geopy
-    new_location = geopy_distance(meters=distance_meters).destination((lat, lon), bearing=0)
-
-    new_lat, new_lon = new_location.latitude, new_location.longitude
-    print(f"New Target Location: Lat {new_lat}, Lon {new_lon}")
-
-    # Command the drone to move to the new GPS location
-    vehicle.airspeed = 3  # Set speed
-    vehicle.simple_goto(LocationGlobalRelative(new_lat, new_lon, current_location.alt))
-
-    # Wait for a short duration to allow movement
-    time.sleep(5)
-    print("Reached new location")
-
-def loiter(duration):
-  print("Switching to Loiter")
-  ##thread_distance.join()
-  time.sleep(1)
-  vehicle.mode = VehicleMode("Loiter")
-  print("Mode: %s" % vehicle.mode.name)
-  print("Height from Lidar: " % vehicle.rangefinder)
-  while vehicle.armed:
-    time.sleep(duration)
 
 
 def RTL():
   time.sleep(1)
-  print("Returning to Launch")
-  vehicle.mode = VehicleMode("RTL")
+  print("   Returning to Launch")
+  vehicle.mode = VehicleMode("    RTL")
+  print("   Mode: %s" % vehicle.mode.name) 
+  while vehicle.armed:
+    time.sleep(1)
+  vehicle.close()
 
 def Land():
 ##This function ensures that the vehicle has landed (before vechile.close is called)
 
-  print("Landing")
+  print("   Landing")
   ##thread_distance.join()
   time.sleep(1)
-  vehicle.mode = VehicleMode("LAND")
-  print("Mode: %s" % vehicle.mode.name) 
+  vehicle.mode = VehicleMode("    LAND")
+  print("   Mode: %s" % vehicle.mode.name) 
   while vehicle.armed:
     time.sleep(1)
   vehicle.close()
@@ -135,16 +110,29 @@ print("MAIN:  Code Started")
 manaul_arm()
 print("MAIN:  Manual Arm Success")
 
-takeoff(5) # In meters
+takeoff(1) # In meters
 print("MAIN:  TakeOff Completed")
 
-loiter(2) # Duration of loiter mode
-print("MAIN:  LOITER Completed")
 
-move_forward(5) # Move forward in XX meters
-print("MAIN:  GO-TO Completed")
+print("Set default/target airspeed to 3")
+vehicle.airspeed = 3
 
-loiter(2) # Duration of loiter mode
-RTL()
+print("Going towards first point for 30 seconds ...")
+#CORRECT COORDINATES
+point1 = LocationGlobalRelative(27.9867057, -82.3015646, 2)
+vehicle.simple_goto(point1)
+# sleep so we can see the change in map
+time.sleep(30)
+
+print("Going towards second point for 30 seconds (groundspeed set to 10 m/s) ...")
+#CORRECT COORDINATES
+point2 = LocationGlobalRelative(27.9868372, -82.3016343, 2)
+vehicle.simple_goto(point2, groundspeed=5)
+# sleep so we can see the change in map
+time.sleep(30)
+
+print("Returning to Launch")
+vehicle.mode = VehicleMode("RTL")
+
 
 print("MAIN: IF DRONE IS NOT UPSIDE DOWN, CONGRATS!")
