@@ -98,6 +98,13 @@ def Land():
 
 print("MAIN:  Code Started")
 
+user_input = input()
+if user_input:  # Exit loop early if any key is pressed and Enter is hit
+  print("Key pressed. Exiting program early...")
+  Land()
+  print("MAIN: IF DRONE IS NOT UPSIDE DOWN, CONGRATS!")
+  exit()
+
 manaul_arm()
 print("MAIN:  Manual Arm Success")
 
@@ -106,3 +113,4 @@ print("MAIN:  TakeOff Completed")
 
 Land()
 print("MAIN: IF DRONE IS NOT UPSIDE DOWN, CONGRATS!")
+exit()
