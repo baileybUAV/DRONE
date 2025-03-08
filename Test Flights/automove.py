@@ -115,47 +115,51 @@ takeoff(3) # In meters
 print("MAIN:  TakeOff Completed")
 
 
-print("Set default/target airspeed to 2")
-vehicle.airspeed = 2
+print("Set default/target airspeed to 3")
+vehicle.airspeed = 3
 
-print("Going towards first point for  ...")
+print("Going towards first point   ...")
 #CORRECT COORDINATES
-point1 = LocationGlobalRelative(27.9873411, -82.3012447, 3)
+point1 = LocationGlobalRelative(27.9873411, -82.3012447, 4)
 vehicle.simple_goto(point1)
 # sleep so we can see the change in map
-time.sleep(5)
+time.sleep(30)
+print("Reached Point")
 
-print("Going towards second point for ...")
+print("Going towards second point  ...")
 #CORRECT COORDINATES
-point2 = LocationGlobalRelative(27.9871291, -82.3012541, 3)
-vehicle.simple_goto(point2, groundspeed=2)
+point2 = LocationGlobalRelative(27.9871291, -82.3012541, 4)
+vehicle.simple_goto(point2)
 # sleep so we can see the change in map
-time.sleep(5)
+time.sleep(30)
+print("Reached Point")
 
-print("Going towards third point for ...")
+print("Going towards third point  ...")
 #CORRECT COORDINATES
-point3 = LocationGlobalRelative(27.9871243, -82.3016618, 3)
+point3 = LocationGlobalRelative(27.9871243, -82.3016618, 4)
 vehicle.simple_goto(point3)
 # sleep so we can see the change in map
-time.sleep(5)
+time.sleep(30)
+print("Reached Point")
 
-print("Going towards fourth point for ...")
+print("Going towards fourth point ...")
 #CORRECT COORDINATES
-point4 = LocationGlobalRelative(27.9873340, -82.3016605, 3)
+point4 = LocationGlobalRelative(27.9873340, -82.3016605, 4)
 vehicle.simple_goto(point4)
 # sleep so we can see the change in map
-time.sleep(5)
+time.sleep(30)
+print("Reached Point")
 
-print("Going towards first point for ...")
+print("Going towards first point  ...")
 #CORRECT COORDINATES
-point1 = LocationGlobalRelative(27.9873411, -82.3012447, 3)
+point1 = LocationGlobalRelative(27.9873411, -82.3012447, 4)
 vehicle.simple_goto(point1)
 # sleep so we can see the change in map
-time.sleep(5)
+time.sleep(30)
+print("Reached Point")
 
 print("Landing")
 Land()
-
 
 print("MAIN: IF DRONE IS NOT UPSIDE DOWN, CONGRATS!")
 exit()
