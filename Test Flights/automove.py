@@ -122,40 +122,35 @@ print("Going towards first point   ...")
 #CORRECT COORDINATES
 point1 = LocationGlobalRelative(27.9873411, -82.3012447, 4)
 vehicle.simple_goto(point1)
-# sleep so we can see the change in map
-time.sleep(30)
+
 print("Reached Point")
 
 print("Going towards second point  ...")
 #CORRECT COORDINATES
 point2 = LocationGlobalRelative(27.9871291, -82.3012541, 4)
 vehicle.simple_goto(point2)
-# sleep so we can see the change in map
-time.sleep(30)
+
 print("Reached Point")
 
 print("Going towards third point  ...")
 #CORRECT COORDINATES
 point3 = LocationGlobalRelative(27.9871243, -82.3016618, 4)
 vehicle.simple_goto(point3)
-# sleep so we can see the change in map
-time.sleep(30)
+
 print("Reached Point")
 
 print("Going towards fourth point ...")
 #CORRECT COORDINATES
 point4 = LocationGlobalRelative(27.9873340, -82.3016605, 4)
 vehicle.simple_goto(point4)
-# sleep so we can see the change in map
-time.sleep(30)
+
 print("Reached Point")
 
 print("Going towards first point  ...")
 #CORRECT COORDINATES
 point1 = LocationGlobalRelative(27.9873411, -82.3012447, 4)
 vehicle.simple_goto(point1)
-# sleep so we can see the change in map
-time.sleep(30)
+
 print("Reached Point")
 
 print("Landing")
