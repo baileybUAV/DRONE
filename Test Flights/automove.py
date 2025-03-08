@@ -111,7 +111,7 @@ print("MAIN:  Code Started")
 manaul_arm()
 print("MAIN:  Manual Arm Success")
 
-takeoff(2) # In meters
+takeoff(3) # In meters
 print("MAIN:  TakeOff Completed")
 
 
@@ -120,41 +120,41 @@ vehicle.airspeed = 2
 
 print("Going towards first point for  ...")
 #CORRECT COORDINATES
-point1 = LocationGlobalRelative(27.9873411, -82.3012447, 2)
+point1 = LocationGlobalRelative(27.9873411, -82.3012447, 3)
 vehicle.simple_goto(point1)
 # sleep so we can see the change in map
 time.sleep(5)
 
 print("Going towards second point for ...")
 #CORRECT COORDINATES
-point2 = LocationGlobalRelative(27.9871291, -82.3012541, 2)
+point2 = LocationGlobalRelative(27.9871291, -82.3012541, 3)
 vehicle.simple_goto(point2, groundspeed=2)
 # sleep so we can see the change in map
 time.sleep(5)
 
 print("Going towards third point for ...")
 #CORRECT COORDINATES
-point3 = LocationGlobalRelative(27.9871243, -82.3016618, 2)
+point3 = LocationGlobalRelative(27.9871243, -82.3016618, 3)
 vehicle.simple_goto(point3)
 # sleep so we can see the change in map
 time.sleep(5)
 
 print("Going towards fourth point for ...")
 #CORRECT COORDINATES
-point4 = LocationGlobalRelative(27.9873340, -82.3016605, 2)
+point4 = LocationGlobalRelative(27.9873340, -82.3016605, 3)
 vehicle.simple_goto(point4)
 # sleep so we can see the change in map
 time.sleep(5)
 
 print("Going towards first point for ...")
 #CORRECT COORDINATES
-point1 = LocationGlobalRelative(27.9873411, -82.3012447, 2)
+point1 = LocationGlobalRelative(27.9873411, -82.3012447, 3)
 vehicle.simple_goto(point1)
 # sleep so we can see the change in map
 time.sleep(5)
 
-print("Returning to Launch")
-vehicle.mode = VehicleMode("RTL")
+print("Landing")
+Land()
 
 
 print("MAIN: IF DRONE IS NOT UPSIDE DOWN, CONGRATS!")
