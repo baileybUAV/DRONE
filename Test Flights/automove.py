@@ -52,7 +52,7 @@ def manaul_arm():
     print("   Waiting for arming...")
     time.sleep(1)
 
-  vehicle.mode = VehicleMode("    GUIDED")
+  vehicle.mode = VehicleMode("GUIDED")
 
   print("   Vehicle armed.")
   print("   Mode: %s" % vehicle.mode.name) 
@@ -82,7 +82,7 @@ def takeoff(aTargetAltitude):
 def RTL():
   time.sleep(1)
   print("   Returning to Launch")
-  vehicle.mode = VehicleMode("    RTL")
+  vehicle.mode = VehicleMode("RTL")
   print("   Mode: %s" % vehicle.mode.name) 
   while vehicle.armed:
     time.sleep(1)
@@ -94,7 +94,7 @@ def Land():
   print("   Landing")
   ##thread_distance.join()
   time.sleep(1)
-  vehicle.mode = VehicleMode("    LAND")
+  vehicle.mode = VehicleMode("LAND")
   print("   Mode: %s" % vehicle.mode.name) 
   while vehicle.armed:
     time.sleep(1)
