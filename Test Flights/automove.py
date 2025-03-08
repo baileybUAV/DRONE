@@ -24,9 +24,9 @@ def connectMyCopter():
   print("GPS: %s" % vehicle.gps_0)
   print("Battery: %s" % vehicle.battery)
   print("Armable?: %s" % vehicle.is_armable)
-  print("Height from Lidar: " % vehicle.rangefinder)
+  #print("Height from Lidar: " % vehicle.rangefinder1)
   print("Mode: %s" % vehicle.mode.name)
-  print("GPS Location: " % vehicle.location.global_frame)    
+  #print("GPS Location: " % vehicle.location.global_frame)    
 
   return vehicle
 
@@ -68,7 +68,7 @@ def takeoff(aTargetAltitude):
   while True:
     print ("    Altitude: ", vehicle.location.global_relative_frame.alt)
     #Break and return from function just below target altitude
-    if vehicle.location.global_relative_frame.alt>=aTargetAltitude*0.95:
+    if vehicle.location.global_relative_frame.alt>=aTargetAltitude*0.80:
       print ("    Reached target altitude")
       #print("Height from Lidar: " % vehicle.rangefinder1)
       break
@@ -118,26 +118,47 @@ if user_input:  # Exit loop early if any key is pressed and Enter is hit
 manaul_arm()
 print("MAIN:  Manual Arm Success")
 
-takeoff(1) # In meters
+takeoff(2) # In meters
 print("MAIN:  TakeOff Completed")
 
 
-print("Set default/target airspeed to 3")
-vehicle.airspeed = 3
+print("Set default/target airspeed to 2")
+vehicle.airspeed = 2
 
-print("Going towards first point for 30 seconds ...")
+print("Going towards first point for  ...")
 #CORRECT COORDINATES
-point1 = LocationGlobalRelative(27.9867057, -82.3015646, 2)
+point1 = LocationGlobalRelative(27.9873411, -82.3012447, 2)
 vehicle.simple_goto(point1)
 # sleep so we can see the change in map
-time.sleep(30)
+time.sleep(5)
 
-print("Going towards second point for 30 seconds (groundspeed set to 10 m/s) ...")
+print("Going towards second point for ...")
 #CORRECT COORDINATES
-point2 = LocationGlobalRelative(27.9868372, -82.3016343, 2)
-vehicle.simple_goto(point2, groundspeed=5)
+point2 = LocationGlobalRelative(27.9871291, -82.3012541, 2)
+vehicle.simple_goto(point2, groundspeed=2)
 # sleep so we can see the change in map
-time.sleep(30)
+time.sleep(5)
+
+print("Going towards third point for ...")
+#CORRECT COORDINATES
+point3 = LocationGlobalRelative(27.9871243, -82.3016618, 2)
+vehicle.simple_goto(point3)
+# sleep so we can see the change in map
+time.sleep(5)
+
+print("Going towards fourth point for ...")
+#CORRECT COORDINATES
+point4 = LocationGlobalRelative(27.9873340, -82.3016605, 2)
+vehicle.simple_goto(point4)
+# sleep so we can see the change in map
+time.sleep(5)
+
+print("Going towards first point for ...")
+#CORRECT COORDINATES
+point1 = LocationGlobalRelative(27.9873411, -82.3012447, 2)
+vehicle.simple_goto(point1)
+# sleep so we can see the change in map
+time.sleep(5)
 
 print("Returning to Launch")
 vehicle.mode = VehicleMode("RTL")
