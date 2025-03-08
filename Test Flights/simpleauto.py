@@ -79,7 +79,7 @@ def Land():
 ##This function ensures that the vehicle has landed (before vechile.close is called)
 
   print("Landing")
-  ##thread_distance.join()
+  
   time.sleep(1)
   vehicle.mode = VehicleMode("LAND")
   print("Mode: %s" % vehicle.mode.name) 
@@ -97,14 +97,8 @@ def Land():
 
 
 print("MAIN:  Code Started")
-
-user_input = input()
 print("Press any key and ENTER to exit code early")
-if user_input:  # Exit loop early if any key is pressed and Enter is hit
-  print("Key pressed. Exiting program early...")
-  Land()
-  print("MAIN: IF DRONE IS NOT UPSIDE DOWN, CONGRATS!")
-  exit()
+
 
 manaul_arm()
 print("MAIN:  Manual Arm Success")
