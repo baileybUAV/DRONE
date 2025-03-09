@@ -24,3 +24,12 @@ Sudo apt-get install libcamera-dev
 Sudo apt-get install libcamera0
 
 pip install geopy
+
+
+SSH Connection:
+Connect both computers to hotspot running zerotier
+In windows/mac terminal:
+ssh uav@172.28.51.11
+Should ask for pi passowrd if connection is successful.(may take a moment or multiple tries)
+
+
