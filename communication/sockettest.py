@@ -1,7 +1,8 @@
 import socket
 
-client = socket.socket(socket.AF_NET, socket.SOCK_STREAM)
+client = socket.socket(socket.AF_NET, socket.SOCK_DGRAM)
 client.connect(('10.42.0.1', 9999))
 
-client.send('Hello from Drone/UAV'.encode())
-print(client.recv(1024).decode())
+client.sendto('Hello from Drone/UAV'.encode(), ('10.42.0.1', 9999))
+data,addr = client.recvfrom(1024)
+print(data.decode())
