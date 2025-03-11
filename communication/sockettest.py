@@ -41,23 +41,8 @@ UGV_IP = "10.42.0.1"
 PORT = 5005
 
 
-message = vehicle.rangefinder.distance
-sock.sendto(b'message', (UGV_IP, PORT))
-print("Message 1 sent")
+message = f"{vehicle.rangefinder.distance}"
+sock.sendto(message.encode(), (UGV_IP, PORT))
+print("Message sent")
 
-
-try:
-    while True:
-        if vehicle.rangefinder.distance is not None:
-            message = f"{vehicle.rangefinder.distance}"  # Convert to string
-            sock.sendto(message.encode(), (UGV_IP, PORT))
-            print(f"Sent: {message}")
-        else:
-            print("Rangefinder data not available.")
-
-        time.sleep(1)  # Send data every second
-except KeyboardInterrupt:
-    print("\nStopping data transmission.")
-finally:
-    sock.close()
-    vehicle.close()
+exit()
