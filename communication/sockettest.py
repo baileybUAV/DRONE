@@ -37,8 +37,7 @@ print("Connected")
 
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-sock.bind(("10.42.0.2", 5005))
-UGV_IP = "10.42.0.2"
+UGV_IP = "10.42.0.120"
 PORT = 5005
 
 
