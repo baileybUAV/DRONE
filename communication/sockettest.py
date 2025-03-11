@@ -41,7 +41,7 @@ UGV_IP = "10.42.0.1"
 PORT = 5005
 
 
-message = f"{vehicle.rangefinder.distance}"
+message = f"{vehicle.location.global_frame}"
 sock.sendto(message.encode(), (UGV_IP, PORT))
 print("Message sent")
 
