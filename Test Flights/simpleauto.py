@@ -24,7 +24,11 @@ def connectMyCopter():
   print("GPS: %s" % vehicle.gps_0)
   print("Battery: %s" % vehicle.battery)
   print("Armable?: %s" % vehicle.is_armable)
-  #print("Height from Lidar: " % vehicle.rangefinder1)
+  print("Height from Lidar: %s" % vehicle.rangefinder)
+  print("Rangefinder distance: %s" % vehicle.rangefinder.distance)
+  print("Global Location: %s" % vehicle.location.global_frame)
+  print("Global Location (relative altitude): %s" % vehicle.location.global_relative_frame)
+  print("Local Location: %s" % vehicle.location.local_frame)
   print("Mode: %s" % vehicle.mode.name)     
   return vehicle
 
@@ -65,8 +69,9 @@ def takeoff(aTargetAltitude):
   # Check that vehicle has reached takeoff altitude
   while True:
     print ("Altitude: ", vehicle.location.global_relative_frame.alt)
+    print ("Lidar: ", vehicle.rangefinder.distance)
     #Break and return from function just below target altitude
-    if vehicle.location.global_relative_frame.alt>=aTargetAltitude*0.80:
+    if vehicle.rangefinder.distance>=aTargetAltitude*0.95:
       print ("Reached target altitude")
       
       break
@@ -103,9 +108,9 @@ print("Press any key and ENTER to exit code early")
 manaul_arm()
 print("MAIN:  Manual Arm Success")
 
-takeoff(1) # In meters
+takeoff(2) # In meters
 print("MAIN:  TakeOff Completed")
-
+time.sleep(5)
 Land()
 print("MAIN: IF DRONE IS NOT UPSIDE DOWN, CONGRATS!")
 exit()
