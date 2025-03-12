@@ -1,3 +1,7 @@
+
+#This code is a simple hover test
+#Changed to use lidar as alt, still must test
+
 from dronekit import connect, VehicleMode, LocationGlobalRelative, APIException
 from pymavlink import mavutil
 import time

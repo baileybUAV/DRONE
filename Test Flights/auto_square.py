@@ -1,3 +1,11 @@
+
+
+#This code is the first full auto test
+#The drone will wait for manual arm
+#Once armed it will take off and travel to predetermind GPS waypoints(drone can take off anywhere in geofence)
+#The drone is given 20s to reach its destination
+#The drone will land at the first waypoint after it visits every point
+
 from dronekit import connect, VehicleMode, LocationGlobalRelative, APIException
 from pymavlink import mavutil
 from geopy.distance import distance as geopy_distance

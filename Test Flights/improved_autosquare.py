@@ -1,4 +1,8 @@
 
+#This code builds off of auto_square.py
+#instead of just using time.sleep to wait until the drone reaches the waypoint 
+#this code measusures the distance from the waypoint and informs the drone of its arrival at 0.5m radious
+
 from dronekit import connect, VehicleMode, LocationGlobalRelative, APIException
 from pymavlink import mavutil
 from geopy.distance import distance as geopy_distance

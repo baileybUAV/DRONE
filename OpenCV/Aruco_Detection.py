@@ -1,3 +1,5 @@
+#aruco detection using windows or usb camera
+
 import cv2
 import numpy as np
 

@@ -1,3 +1,6 @@
+#Simple connection code with added paramters extracted from Cube Oragne+ 
+# Use to learn how to call data from the drone and how it is formatted
+
 from dronekit import connect, VehicleMode, LocationGlobalRelative, APIException
 from pymavlink import mavutil
 import time
