@@ -41,6 +41,7 @@ PORT = 5005
 
 def send_gps():
     while True:
+        lat = 0 
         if lat != 0:
           lat = vehicle.location.global_frame.lat
           lon = vehicle.location.global_frame.lon
