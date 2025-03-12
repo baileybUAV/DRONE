@@ -41,15 +41,18 @@ PORT = 5005
 
 def send_gps():
     while True:
-        lat = vehicle.location.global_frame.lat
-        lon = vehicle.location.global_frame.lon
-        alt = vehicle.location.global_relative_frame.alt
+        if lat != 0:
+          lat = vehicle.location.global_frame.lat
+          lon = vehicle.location.global_frame.lon
+          alt = vehicle.location.global_relative_frame.alt
 
-        # Create message
-        data = f"{lat},{lon},{alt}"
-        sock.sendto(data.encode(), (UGV_IP, PORT))
-        print(f"Sent GPS to UGV: {data}")
+          # Create message
+          data = f"{lat},{lon},{alt}"
+          sock.sendto(data.encode(), (UGV_IP, PORT))
+          print(f"Sent GPS to UGV: {data}")
 
-        time.sleep(2)  # Send every 2 seconds
+          time.sleep(2)  # Send every 2 seconds
+        else:
+           print("Invlaid GPS Location")
 
 send_gps()
