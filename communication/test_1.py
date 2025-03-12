@@ -55,5 +55,6 @@ def send_gps():
           time.sleep(2)  # Send every 2 seconds
         else:
            print("Invlaid GPS Location")
+           time.sleep(2)
 
 send_gps()
