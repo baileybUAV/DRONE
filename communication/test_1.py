@@ -35,15 +35,21 @@ def connectMyCopter():
 vehicle = connectMyCopter()
 print("Connected")
 
-
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 UGV_IP = "10.42.0.120"
 PORT = 5005
 
+def send_gps():
+    while True:
+        lat = vehicle.location.global_frame.lat
+        lon = vehicle.location.global_frame.lon
+        alt = vehicle.location.global_relative_frame.alt
 
-while True:
-    message = f"{vehicle.location.global_frame}"
-    sock.sendto(message.encode(), (UGV_IP, PORT))
-    print("Message Sent \n")
-    time.sleep(2)
-    
+        # Create message
+        data = f"{lat},{lon},{alt}"
+        sock.sendto(data.encode(), (UGV_IP, PORT))
+        print(f"Sent GPS to UGV: {data}")
+
+        time.sleep(2)  # Send every 2 seconds
+
+send_gps()
