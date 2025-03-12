@@ -1,3 +1,7 @@
+
+#Sends UGV the UAV's current GPS Location every 2s over hotspot and socket
+
+
 from dronekit import connect, VehicleMode, LocationGlobalRelative, APIException
 from pymavlink import mavutil
 from geopy.distance import distance as geopy_distance
