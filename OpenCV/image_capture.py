@@ -22,7 +22,7 @@ if __name__ == '__main__':
 # parser.add_argument('--figure', help='saved visualization name', default=None)
     args = parser.parse_args()
 
-    source = cv2.VideoCapture(0)
+    source = cv2.VideoCapture(1)
     # square_size = float(args.get('--square_size', 1.0))
     
     pattern_size = (9, 6)
