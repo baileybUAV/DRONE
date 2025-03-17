@@ -3,7 +3,7 @@ import numpy as np
 import cv2
 import os
 import argparse
-import yaml
+#import yaml
 import pickle
 from glob import glob
 
