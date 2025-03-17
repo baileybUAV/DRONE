@@ -1,6 +1,6 @@
 import cv2
 
-cap = cv2.VideoCapture(1)  # Try 0, 1, or other indices
+cap = cv2.VideoCapture(1, cv2.CAP_V4L2)  # Try 0, 1, or other indices
 if not cap.isOpened():
     print("Error: Could not open camera.")
 else:
