@@ -4,8 +4,8 @@ import glob
 from picamera2 import Picamera2
 
 # Define checkerboard pattern size
-CHECKERBOARD = (7, 6)  # Adjust based on your checkerboard pattern
-square_size = 0.025  # Size of a square in meters
+CHECKERBOARD = (9, 6)  # Adjust based on your checkerboard pattern
+square_size = 0.024  # Size of a square in meters
 
 # Termination criteria for corner subpixel refinement
 criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
