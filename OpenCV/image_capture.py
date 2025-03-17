@@ -1,11 +1,11 @@
+#!/usr/bin/env python
 import numpy as np
 import cv2
 import os
 import argparse
-#import yaml
+import yaml
 import pickle
 from glob import glob
-from picamera2 import Picamera2
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Calibrate camera using a video of a chessboard or a sequence of images.')
@@ -22,13 +22,7 @@ if __name__ == '__main__':
 # parser.add_argument('--figure', help='saved visualization name', default=None)
     args = parser.parse_args()
 
-    # Initialize Raspberry Pi Camera
-    picam2 = Picamera2()
-    config = picam2.create_preview_configuration(main={"size": (1280, 720), "format": "RGB888"})
-    picam2.configure(config)
-    picam2.start()
-    source = picam2.capture_array()
-    #source = cv2.VideoCapture(source1)
+    source = cv2.VideoCapture(0)
     # square_size = float(args.get('--square_size', 1.0))
     
     pattern_size = (9, 6)
@@ -39,8 +33,8 @@ if __name__ == '__main__':
     obj_points = []
     img_points = []
     h, w = args.height, args.width
-    #source.set(cv2.CAP_PROP_FRAME_HEIGHT,h)
-    #source.set(cv2.CAP_PROP_FRAME_WIDTH,w)
+    source.set(cv2.CAP_PROP_FRAME_HEIGHT,h)
+    source.set(cv2.CAP_PROP_FRAME_WIDTH,w)
     
     i = -1
     image_count=0
@@ -79,12 +73,12 @@ if __name__ == '__main__':
             cv2.drawChessboardCorners(img_chess, pattern_size, corners, found)
             cv2.imwrite(os.path.join(args.debug_dir, '%04d.png' % i), img_chess)
         if not found:
-            print ('not found')
+            print('not found')
             continue
         img_points.append(corners.reshape(1, -1, 2))
         obj_points.append(pattern_points.reshape(1, -1, 3))
 
-        print ('ok')
+        print('ok')
 
     if args.corners:
         with open(args.corners, 'wb') as fw:
@@ -95,8 +89,8 @@ if __name__ == '__main__':
 
     print('\nPerforming calibration...')
     rms, camera_matrix, dist_coefs, rvecs, tvecs = cv2.calibrateCamera(obj_points, img_points, (w, h), None, None)
-    print ("RMS:", rms)
-    print ("camera matrix:\n", camera_matrix)
+    print("RMS:", rms)
+    print("camera matrix:\n", camera_matrix)
     print("distortion coefficients: ", dist_coefs.ravel())
 
     # # fisheye calibration
