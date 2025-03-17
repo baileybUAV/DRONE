@@ -27,8 +27,8 @@ if __name__ == '__main__':
     config = picam2.create_preview_configuration(main={"size": (1280, 720), "format": "RGB888"})
     picam2.configure(config)
     picam2.start()
-    source1 = picam2.capture_array()
-    source = cv2.VideoCapture(source1)
+    source = picam2.capture_array()
+    #source = cv2.VideoCapture(source1)
     # square_size = float(args.get('--square_size', 1.0))
     
     pattern_size = (9, 6)
@@ -39,8 +39,8 @@ if __name__ == '__main__':
     obj_points = []
     img_points = []
     h, w = args.height, args.width
-    source.set(cv2.CAP_PROP_FRAME_HEIGHT,h)
-    source.set(cv2.CAP_PROP_FRAME_WIDTH,w)
+    #source.set(cv2.CAP_PROP_FRAME_HEIGHT,h)
+    #source.set(cv2.CAP_PROP_FRAME_WIDTH,w)
     
     i = -1
     image_count=0
