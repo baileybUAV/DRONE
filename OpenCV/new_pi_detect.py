@@ -16,7 +16,7 @@ objp[:, :2] = np.mgrid[0:CHESSBOARD_SIZE[0], 0:CHESSBOARD_SIZE[1]].T.reshape(-1,
 objp *= SQUARE_SIZE  # Scale to real-world size
 
 # === Initialize Camera ===
-cap = cv2.VideoCapture(0)  # Use the correct index for your ArduCam
+cap = cv2.VideoCapture(19)  # Use the correct index for your ArduCam
 
 if not cap.isOpened():
     print("Error: Could not open camera.")
