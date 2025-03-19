@@ -23,7 +23,7 @@ def connectMyCopter():
   connection_string = "/dev/ttyAMA0"
   baud_rate = 57600
 
-  print("Connecting...")
+  print("Connecting Pi to Drone...")
   vehicle = connect(connection_string,baud=baud_rate) 
   print("GPS: %s" % vehicle.gps_0)
   print("Battery: %s" % vehicle.battery)
