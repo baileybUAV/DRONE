@@ -50,7 +50,6 @@ def setup_telem_connection():
     print("Telemetry link established!")
     return telem_link
 
-vehicle = connectMyCopter()
 telem_link = setup_telem_connection()
 
 while True:
