@@ -1,76 +1,71 @@
 import cv2
 import numpy as np
-import glob
+import pickle
+from picamera2 import Picamera2
 
-# === Define Chessboard Size ===
-CHESSBOARD_SIZE = (9, 6)  # Adjust based on your printed pattern
-SQUARE_SIZE = 0.025  # Size of each square in meters (25mm = 0.025m)
+# Load camera calibration data
+CALIBRATION_DIR = "./calibrationFiles"
 
-# === Initialize Storage for Calibration Data ===
-obj_points = []  # 3D points in real-world space
-img_points = []  # 2D points in image plane
+with open(f"{CALIBRATION_DIR}/calibration_data.pkl", "rb") as f:
+    calib_data = pickle.load(f)
+    camera_matrix = np.array(calib_data['camera_matrix'])
+    dist_coeffs = np.array(calib_data['dist_coefs'])
 
-# Prepare the 3D object points (assuming z=0)
-objp = np.zeros((CHESSBOARD_SIZE[0] * CHESSBOARD_SIZE[1], 3), np.float32)
-objp[:, :2] = np.mgrid[0:CHESSBOARD_SIZE[0], 0:CHESSBOARD_SIZE[1]].T.reshape(-1, 2)
-objp *= SQUARE_SIZE  # Scale to real-world size
+# Initialize ArUco Detector
+parameters = cv2.aruco.DetectorParameters()
+aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_6X6_50)
 
-# === Initialize Camera ===
-cap = cv2.VideoCapture(1)  # Use the correct index for your ArduCam
-
-if not cap.isOpened():
-    print("Error: Could not open camera.")
-    exit()
-
-# === Capture Images for Calibration ===
-print("Press 'c' to capture an image. Press 'q' when done.")
-
-image_count = 0
-while True:
-    ret, frame = cap.read()
-    if not ret:
-        print("Error: Could not read frame.")
-        break
-
+def detect_aruco_objects(frame):
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    corners, ids, _ = cv2.aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
+    return corners, ids
 
-    # Find chessboard corners
-    ret, corners = cv2.findChessboardCorners(gray, CHESSBOARD_SIZE, None)
+# Marker size in meters
+marker_size = 0.05  # Adjust to your marker's actual size
 
-    if ret:
-        cv2.drawChessboardCorners(frame, CHESSBOARD_SIZE, corners, ret)
+# Define 3D points of the marker's corners in real-world space
+marker_corners_3d = np.array([
+    [-marker_size / 2, marker_size / 2, 0],
+    [marker_size / 2, marker_size / 2, 0],
+    [marker_size / 2, -marker_size / 2, 0],
+    [-marker_size / 2, -marker_size / 2, 0]
+], dtype=np.float32)
 
-    cv2.imshow("Camera View", frame)
+# Initialize Raspberry Pi Camera
+picam2 = Picamera2()
+config = picam2.create_preview_configuration(main={"size": (640, 480), "format": "RGB888"})
+picam2.configure(config)
+picam2.start()
 
-    key = cv2.waitKey(1) & 0xFF
-    if key == ord('c') and ret:
-        obj_points.append(objp)
-        img_points.append(corners)
-        image_count += 1
-        print(f"Captured {image_count} images for calibration.")
-    elif key == ord('q'):
+print("Press 'Esc' to exit.")
+
+# Main loop
+while True:
+    img = picam2.capture_array()
+    img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)  # Convert to BGR for OpenCV
+    
+    # Detect ArUco objects
+    corners, ids = detect_aruco_objects(img)
+    
+    if ids is not None and len(corners) > 0:
+        for i, corner in enumerate(corners):
+            marker_corners_2d = corner[0].astype(np.float32)
+            
+            success, rvec, tvec = cv2.solvePnP(
+                marker_corners_3d, marker_corners_2d, camera_matrix, dist_coeffs
+            )
+            
+            if success:
+                cv2.polylines(img, [np.int32(marker_corners_2d)], True, (0, 255, 0), 5)
+                x, y = marker_corners_2d[0]
+                cv2.putText(img, f"ID: {ids[i][0]}", (int(x), int(y - 10)),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 0, 0), 2)
+                cv2.drawFrameAxes(img, camera_matrix, dist_coeffs, rvec, tvec, marker_size)
+                print(f"Marker ID: {ids[i][0]}\nRotation Vector: {rvec}\nTranslation Vector: {tvec}")
+    
+    cv2.imshow("ArUco Detection", img)
+    key = cv2.waitKey(1)
+    if key == 27:  # Press 'Esc' to exit
         break
 
-cap.release()
 cv2.destroyAllWindows()
-
-if len(obj_points) < 10:  # Ensure enough images are captured
-    print("Not enough images captured for calibration. Try again.")
-    exit()
-
-# === Perform Camera Calibration ===
-ret, camera_matrix, dist_coeffs, rvecs, tvecs = cv2.calibrateCamera(
-    obj_points, img_points, gray.shape[::-1], None, None
-)
-
-if ret:
-    print("\n=== Camera Calibration Successful ===")
-    print("Camera Matrix:\n", camera_matrix)
-    print("Distortion Coefficients:\n", dist_coeffs)
-
-    # Save Calibration Results
-    np.save("camera_matrix.npy", camera_matrix)
-    np.save("dist_coeffs.npy", dist_coeffs)
-    print("Calibration parameters saved.")
-else:
-    print("Calibration failed.")
