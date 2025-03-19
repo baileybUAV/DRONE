@@ -22,7 +22,7 @@ def connectMyCopter():
   connection_string = "/dev/ttyAMA0"
   baud_rate = 57600
 
-  print("Connecting Pi to Drone...")
+  print("Connecting Pito Drone...")
   vehicle = connect(connection_string,baud=baud_rate) 
   print("GPS: %s" % vehicle.gps_0)
   print("Battery: %s" % vehicle.battery)
@@ -50,6 +50,7 @@ def setup_telem_connection():
     print("Telemetry link established!")
     return telem_link
 
+
 telem_link = setup_telem_connection()
 
 while True:
@@ -65,7 +66,11 @@ while True:
         int(lat * 1e7),  # Latitude in 1E7 degrees
         int(lon * 1e7),  # Longitude in 1E7 degrees
         int(alt * 1000),  # Altitude in mm
-        
+        int(vehicle.gps_0.eph),  # HDOP (horizontal accuracy in cm)
+        int(vehicle.gps_0.epv),  # VDOP (vertical accuracy in cm)
+        int(vehicle.groundspeed * 100),  # Velocity in cm/s
+        int(vehicle.heading * 100),  # Course over ground (degrees * 100)
+        vehicle.gps_0.satellites_visible  # Number of satellites visible
     )
     
     # Send the message to the other Pi
