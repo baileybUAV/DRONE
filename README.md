@@ -4,8 +4,8 @@ PI SETUP
 
 Flash latest PI OS
 
-sudo apt-get update
-sudo apt-get upgrade
+sudo apt update
+sudo apt upgrade
 sudo apt-get install python3-pip
 sudo apt-get install python3-dev
 sudo apt-get install screen python3-wxgtk4.0 python3-lxml
