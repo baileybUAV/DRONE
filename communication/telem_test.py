@@ -68,10 +68,11 @@ input()
 print("Sending data now")
 
 while True:
-    # Retrieve UAV GPS location
+    # Get UAV GPS and velocity data
     lat = vehicle.location.global_frame.lat
     lon = vehicle.location.global_frame.lon
     alt = vehicle.location.global_frame.alt
+    rel_alt = vehicle.location.global_relative_frame.alt
     velocity_north = vehicle.velocity[0]  # North velocity (m/s)
     velocity_east = vehicle.velocity[1]   # East velocity (m/s)
     velocity_down = vehicle.velocity[2]   # Down velocity (m/s)
@@ -79,23 +80,23 @@ while True:
     if lat is None or lon is None:
         print("Error: No valid GPS data available")
     else:
-        # Dummy covariance matrix (adjust based on real sensor accuracy)
-        position_covariance = [0.01] * 21  # 21 elements needed for the matrix
-        
+        # Create a covariance matrix with NaN (unknown values)
+        covariance_matrix = np.full((36,), float('nan'), dtype=np.float32)
+
         # Create MAVLink message with GPS and velocity data
         msg = telem_link.mav.global_position_int_cov_encode(
-            int(time.time() * 1e6),  # Time since boot (microseconds)
+            int(time.time() * 1e6),  # Timestamp (microseconds)
+            3,  # MAV_ESTIMATOR_TYPE_GPS (3 = GPS-based estimation)
             int(lat * 1e7),  # Latitude in degrees * 1E7
             int(lon * 1e7),  # Longitude in degrees * 1E7
-            int(alt * 1000),  # Altitude in mm (above sea level)
-            int(vehicle.location.global_relative_frame.alt * 1000),  # Altitude relative to home (mm)
-            velocity_north * 100,  # North velocity (cm/s)
-            velocity_east * 100,   # East velocity (cm/s)
-            velocity_down * 100,   # Down velocity (cm/s)
-            int(vehicle.heading * 100),  # Heading (centidegrees)
-            position_covariance  # Position covariance (21 elements)
-            
+            int(alt * 1000),  # Altitude above MSL in mm
+            int(rel_alt * 1000),  # Relative altitude in mm
+            float(velocity_north),  # Velocity North (m/s)
+            float(velocity_east),   # Velocity East (m/s)
+            float(velocity_down),   # Velocity Down (m/s)
+            covariance_matrix  # 6x6 Covariance matrix
         )
+
 
         # Send the message to the other Pi
         telem_link.mav.send(msg)
