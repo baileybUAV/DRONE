@@ -12,6 +12,7 @@ import math
 import argparse
 import os
 import socket
+import numpy as np
 
 def connectMyCopter():
   print("Start Connection")
