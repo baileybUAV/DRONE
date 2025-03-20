@@ -23,7 +23,7 @@ if len(sys.argv) > 1:
 
 ############ ARUCO/CV2 SETTINGS ############
 id_to_find = 1
-marker_size = 0.305  # meters
+marker_size = 0.253  # meters
 
 realWorldEfficiency = 0.7  # Account for real-world drone speed variation
 aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_6X6_250)
@@ -36,44 +36,35 @@ cameraDistortion = np.loadtxt(calib_path + 'cameraDistortion.txt', delimiter=','
 
 #############################
 
-seconds = 1000000 if viewVideo else 5
-start_time = time.time()
-while time.time() - start_time < seconds:
+while True:
     img = picam2.capture_array()
     img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
     gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     
     corners, ids, _ = aruco.detectMarkers(image=gray_img, dictionary=aruco_dict, parameters=parameters)
     
-    if ids is not None:
+    if ids is not None and id_to_find in ids:
         print("Found these IDs in the frame:", ids)
+        index = np.where(ids == id_to_find)[0][0]  # Find index of the target marker
+        ret = aruco.estimatePoseSingleMarkers(corners, marker_size, cameraMatrix, cameraDistortion)
+        rvec, tvec = ret[0][index, 0, :], ret[1][index, 0, :]
         
-        if id_to_find in ids:
-            index = np.where(ids == id_to_find)[0][0]  # Find index of the target marker
-            ret = aruco.estimatePoseSingleMarkers(corners, marker_size, cameraMatrix, cameraDistortion)
-            rvec, tvec = ret[0][index, 0, :], ret[1][index, 0, :]
-            
-            # Convert meters to feet (1 meter = 3.28084 feet)
-            x_ft, y_ft, z_ft = tvec[0] * 3.28084, tvec[1] * 3.28084, tvec[2] * 3.28084
-            print(f"MARKER POSITION (feet): x={x_ft:.3f} y={y_ft:.3f} z={z_ft:.3f}")
-            
-            if viewVideo:
-                aruco.drawDetectedMarkers(img, corners)
-                cv2.drawFrameAxes(img, cameraMatrix, cameraDistortion, rvec, tvec, 0.1)
-                cv2.imshow('Aruco Detection', img)
-                
+        # Output position in meters
+        print(f"MARKER POSITION (meters): x={tvec[0]:.3f} y={tvec[1]:.3f} z={tvec[2]:.3f}")
+        
+        if viewVideo:
+            aruco.drawDetectedMarkers(img, corners)
+            cv2.drawFrameAxes(img, cameraMatrix, cameraDistortion, rvec, tvec, 0.1)
     else:
         print(f"ARUCO {id_to_find} NOT FOUND IN FRAME.")
-        time.sleep(1)
-        
+    
+    if viewVideo:
+        cv2.imshow('Aruco Detection', img)
+    
     # Ensure window updates and allow exit with 'q'
-    key = cv2.waitKey(1)
+    key = cv2.waitKey(1) & 0xFF
     if key == ord('q'):
         break
-
-if not viewVideo:
-    print("Performance Diagnosis:")
-    print("Make sure the system is running efficiently on the Raspberry Pi.")
 
 cv2.destroyAllWindows()
 picam2.close()
