@@ -83,6 +83,7 @@ while True:
         # Create a covariance matrix with NaN (unknown values)
         covariance_matrix = np.full((36,), float('nan'), dtype=np.float32)
 
+        print("GPS STATUS: %s" % vehicle.gps_0.fix_type)
         # Create MAVLink message with GPS and velocity data
         msg = telem_link.mav.global_position_int_cov_encode(
             int(time.time() * 1e6),  # Timestamp (microseconds)
