@@ -28,6 +28,7 @@ marker_size = 0.253  # meters
 realWorldEfficiency = 0.7  # Account for real-world drone speed variation
 aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_6X6_250)
 parameters = aruco.DetectorParameters()
+parameters.cornerRefinementMethod = cv2.aruco.CORNER_REFINE_SUBPIX  # Enable corner refinement
 
 # Load Camera Calibration Data
 calib_path = "/home/uav/drone/OpenCV/calibrationFiles/"
@@ -39,6 +40,10 @@ cameraDistortion = np.loadtxt(calib_path + 'cameraDistortion.txt', delimiter=','
 while True:
     img = picam2.capture_array()
     img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+    
+    # Undistort the image to improve accuracy
+    img = cv2.undistort(img, cameraMatrix, cameraDistortion)
+    
     gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     
     corners, ids, _ = aruco.detectMarkers(image=gray_img, dictionary=aruco_dict, parameters=parameters)
