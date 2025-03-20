@@ -93,8 +93,8 @@ while True:
             velocity_east * 100,   # East velocity (cm/s)
             velocity_down * 100,   # Down velocity (cm/s)
             int(vehicle.heading * 100),  # Heading (centidegrees)
-            position_covariance,  # Position covariance (21 elements)
-            3  # Estimator type (3 = GPS, adjust as needed)
+            position_covariance  # Position covariance (21 elements)
+            
         )
 
         # Send the message to the other Pi
