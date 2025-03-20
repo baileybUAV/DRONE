@@ -117,7 +117,7 @@ def precision_landing():
         corners, ids, _ = aruco.detectMarkers(image=gray_img, dictionary=aruco_dict, parameters=parameters)
 
         if ids is not None and id_to_find in ids:
-            print(f"✅ Marker {id_to_find} detected! Adjusting position...")
+            print(f"Marker {id_to_find} detected! Adjusting position...")
             index = np.where(ids == id_to_find)[0][0]
             ret = aruco.estimatePoseSingleMarkers(corners, marker_size, cameraMatrix, cameraDistortion)
             rvec, tvec = ret[0][index, 0, :], ret[1][index, 0, :]
@@ -132,7 +132,7 @@ def precision_landing():
             
             last_x_ang, last_y_ang = x_ang, y_ang
         else:
-            print("❌ Marker lost, using last known position.")
+            print("Marker lost, using last known position.")
 
         msg = vehicle.message_factory.landing_target_encode(
             0, 0, mavutil.mavlink.MAV_FRAME_BODY_OFFSET_NED, last_x_ang, last_y_ang, 0, 0, 0)
@@ -149,7 +149,7 @@ def precision_landing():
         print("Waiting for LAND mode...")
         time.sleep(1)
 
-    print("✅ Drone has landed.")
+    print("Drone has landed.")
 
 def goto_waypoint(waypoint, waypoint_number):
     print(f"Going to waypoint {waypoint_number}...")
@@ -161,7 +161,7 @@ def goto_waypoint(waypoint, waypoint_number):
 
         # Constantly check for ArUco marker
         if detect_aruco_marker():
-            print("✅ Marker detected! Switching to precision landing.")
+            print("Marker detected! Switching to precision landing.")
             precision_landing()
             break
 
