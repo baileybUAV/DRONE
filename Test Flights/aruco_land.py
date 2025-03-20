@@ -139,7 +139,7 @@ def precision_landing():
         vehicle.send_mavlink(msg)
         vehicle.flush()
 
-        print(f"🔄 Adjusting landing: x={last_x_ang:.4f}, y={last_y_ang:.4f}")
+        print(f"Adjusting landing: x={last_x_ang:.4f}, y={last_y_ang:.4f}")
 
         time.sleep(0.5) 
     
