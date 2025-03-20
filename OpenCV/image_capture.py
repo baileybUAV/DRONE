@@ -8,12 +8,12 @@ from picamera2 import Picamera2
 # Camera settings
 FRAME_WIDTH = 1280
 FRAME_HEIGHT = 720
-FRAMESTEP = 60  # Capture every 20th frame
+FRAMESTEP = 80  # Capture every 20th frame
 
 # Checkerboard settings
 CHECKERBOARD = (9, 6)  # Number of inner corners
 SQUARE_SIZE = 0.024  # Size of a square in meters
-IMAGE_GOAL = 40  # Number of images needed for calibration
+IMAGE_GOAL = 75  # Number of images needed for calibration
 DEBUG_DIR = "./calibrationpic"  # Directory for debugging images
 OUTPUT_DIR = "./calibrationFiles"  # Directory for calibration data
 
