@@ -78,7 +78,7 @@ while True:
     velocity_east = vehicle.velocity[1]   # East velocity (m/s)
     velocity_down = vehicle.velocity[2]   # Down velocity (m/s)
 
-    if lat is None or lon is None:
+    if lat is None or lon is None or lat == 0 or lon == 0:
         print("Error: No valid GPS data available")
     else:
         # Create a covariance matrix with NaN (unknown values)
