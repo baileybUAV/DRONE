@@ -13,7 +13,7 @@ FRAMESTEP = 80  # Capture every 20th frame
 # Checkerboard settings
 CHECKERBOARD = (9, 6)  # Number of inner corners
 SQUARE_SIZE = 0.025  # Size of a square in meters
-IMAGE_GOAL = 75  # Number of images needed for calibration
+IMAGE_GOAL = 30  # Number of images needed for calibration
 DEBUG_DIR = "./calibrationpic"  # Directory for debugging images
 OUTPUT_DIR = "./calibrationFiles"  # Directory for calibration data
 
