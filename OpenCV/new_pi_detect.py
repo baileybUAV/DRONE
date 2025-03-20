@@ -8,8 +8,8 @@ from picamera2 import Picamera2
 #############################
 
 # Initialize Pi Camera
-width = 640
-height = 480
+width = 1280
+height = 720
 picam2 = Picamera2()
 config = picam2.create_preview_configuration(main={"size": (width, height), "format": "RGB888"})
 picam2.configure(config)
@@ -53,21 +53,28 @@ while time.time() - start_time < seconds:
             ret = aruco.estimatePoseSingleMarkers(corners, marker_size, cameraMatrix, cameraDistortion)
             rvec, tvec = ret[0][index, 0, :], ret[1][index, 0, :]
             
-            x, y, z = tvec[0], tvec[1], tvec[2]  # Keep values as floating-point meters
-            print(f"MARKER POSITION (meters): x={x:.3f} y={y:.3f} z={z:.3f}")
+            # Convert meters to feet (1 meter = 3.28084 feet)
+            x_ft, y_ft, z_ft = tvec[0] * 3.28084, tvec[1] * 3.28084, tvec[2] * 3.28084
+            print(f"MARKER POSITION (feet): x={x_ft:.3f} y={y_ft:.3f} z={z_ft:.3f}")
             
             if viewVideo:
                 aruco.drawDetectedMarkers(img, corners)
-                aruco.drawAxis(img, cameraMatrix, cameraDistortion, rvec, tvec, 0.1)
+                cv2.drawFrameAxes(img, cameraMatrix, cameraDistortion, rvec, tvec, 0.1)
                 cv2.imshow('Aruco Detection', img)
                 
-                if cv2.waitKey(1) & 0xFF == ord('q'):
-                    break
     else:
         print(f"ARUCO {id_to_find} NOT FOUND IN FRAME.")
+        time.sleep(1)
+        
+    # Ensure window updates and allow exit with 'q'
+    key = cv2.waitKey(1)
+    if key == ord('q'):
+        break
 
 if not viewVideo:
     print("Performance Diagnosis:")
     print("Make sure the system is running efficiently on the Raspberry Pi.")
 
 cv2.destroyAllWindows()
+picam2.close()
+exit()
