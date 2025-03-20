@@ -83,7 +83,6 @@ while True:
         
     # Send the message to the other Pi
     telem_link.mav.send(msg)
-    telem_link.flush()
     print(f"Sent GPS Data: Lat {lat}, Lon {lon}, Alt {alt}")
     print("Location Sent\n")    
     time.sleep(2)
