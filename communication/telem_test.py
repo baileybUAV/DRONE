@@ -60,23 +60,29 @@ print("Sending data now")
 lat = vehicle.location.global_frame.lat
 lon = vehicle.location.global_frame.lon
 alt = vehicle.location.global_frame.alt
-    
-    # Create a MAVLink message with GPS coordinates
-msg = telem_link.mav.gps_raw_int_encode(
-    int(time.time() * 1e6),  # Timestamp (microseconds)
-    3,  # Fix type (3D fix)
-    int(lat * 1e7),  # Latitude in 1E7 degrees
-    int(lon * 1e7),  # Longitude in 1E7 degrees
-    int(alt * 1000),  # Altitude in mm
-    int(vehicle.gps_0.eph),  # HDOP (horizontal accuracy in cm)
-    int(vehicle.gps_0.epv),  # VDOP (vertical accuracy in cm)
-    int(vehicle.groundspeed * 100),  # Velocity in cm/s
-    int(vehicle.heading * 100),  # Course over ground (degrees * 100)
-    vehicle.gps_0.satellites_visible  # Number of satellites visible
+
+if lat is None or lon is None:
+    print("Error: No valid GPS data available")
+else:
+    # Create MAVLink message with GPS coordinates
+    msg = telem_link.mav.gps_raw_int_encode(
+        int(time.time() * 1e6),
+        3,
+        int(lat * 1e7),
+        int(lon * 1e7),
+        int(alt * 1000),
+        int(vehicle.gps_0.eph),
+        int(vehicle.gps_0.epv),
+        int(vehicle.groundspeed * 100),
+        int(vehicle.heading * 100),
+        vehicle.gps_0.satellites_visible
     )
+
+
     
-    # Send the message to the other Pi
+# Send the message to the other Pi
 telem_link.mav.send(msg)
+telem_link.flush()
 print(f"Sent GPS Data: Lat {lat}, Lon {lon}, Alt {alt}")
     
 time.sleep(2)
