@@ -128,7 +128,7 @@ def precision_landing():
             x_ang = (x_avg - width * 0.5) * (horizontal_fov / width)
             y_ang = (y_avg - height * 0.5) * (vertical_fov / height)
 
-            send_local_ned_velocity(-x_ang * 0.2, -y_ang * 0.2, 0)
+            send_local_ned_velocity(-x_ang * 0.3, -y_ang * 0.3, 0)
             
             last_x_ang, last_y_ang = x_ang, y_ang
         else:
@@ -184,17 +184,6 @@ vehicle.parameters['LAND_SPEED'] = 15
 manual_arm()
 takeoff(takeoff_height)
 
-print("Setting airspeed to 5 ft/s")
-vehicle.airspeed = 1.5  # m/s
-
-# Waypoints List
-waypoints = [
-    LocationGlobalRelative(27.9867963, -82.3017007, 6),
-    LocationGlobalRelative(27.9867916, -82.3009175, 6),
-]
-
-for i, waypoint in enumerate(waypoints):
-    goto_waypoint(waypoint, i + 1)
 
 precision_landing()
 print("Mission Complete.")
