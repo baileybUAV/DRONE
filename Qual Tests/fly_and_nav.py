@@ -20,7 +20,7 @@ picam2.start()
 # ARUCO SETTINGS
 id_to_find = 1
 marker_size = .253  # meters
-aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_ARUCO_ORIGINAL)
+aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_6X6_250)
 parameters = aruco.DetectorParameters()
 parameters.cornerRefinementMethod = cv2.aruco.CORNER_REFINE_SUBPIX
 
@@ -243,7 +243,7 @@ telem_link = setup_telem_connection()
 manaul_arm()
 takeoff(takeoff_height)
 print("Setting airspeed to 5 mp/h")
-vehicle.airspeed = 1
+vehicle.airspeed = 2.2
 
 # Waypoints List (add coordinates here)
 waypoints = [
