@@ -191,6 +191,12 @@ def goto_waypoint(waypoint, waypoint_number):
             break
         if distance < 0.5:
             print(f"Reached waypoint {waypoint_number}")
+            print("Landing")
+            vehicle.mode = VehicleMode("LAND")
+            while vehicle.armed:
+                time.sleep(1)
+            vehicle.close()
+            print("Drone has landed safely")
             break
         print(f"Distance to waypoint {waypoint_number}: {distance:.2f}m")
         time.sleep(1)
@@ -212,8 +218,7 @@ vehicle.airspeed = 2.2
 
 # Waypoints List (add coordinates here)
 waypoints = [
-    LocationGlobalRelative(0, 0, 6),
-    LocationGlobalRelative(0, 0, 6),
+    LocationGlobalRelative(27.9867939, -82.3009524, 6)
 ]
 
 for i, waypoint in enumerate(waypoints):
