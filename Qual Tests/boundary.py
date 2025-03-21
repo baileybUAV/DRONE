@@ -125,8 +125,7 @@ vehicle.airspeed = 2.2 #m/s
 
 # Waypoints List
 waypoints = [
-    LocationGlobalRelative(27.9867773,-82.3014553, 6),
-    LocationGlobalRelative(27.9866471,-82.3015398, 6),  # Returning to first waypoint
+    LocationGlobalRelative(27.9866471,-82.3015398, 6),  # outside geo fence
     LocationGlobalRelative(27.9867122,-82.3016216, 6)
 ]
 
