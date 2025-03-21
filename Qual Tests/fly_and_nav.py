@@ -187,7 +187,7 @@ def precision_landing():
 
             # Dynamically tighten centering threshold when closer to the ground
         
-            center_threshold = 0.05
+            center_threshold = 0.08
 
             # If marker is centered within the angular threshold
             if abs(x_ang) < center_threshold and abs(y_ang) < center_threshold:
