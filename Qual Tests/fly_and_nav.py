@@ -131,53 +131,53 @@ def detect_aruco_marker():
 
 def precision_landing():
     print("Initiating precision landing.")
+    
     last_x_ang, last_y_ang = 0, 0
-    descent_rate = 0.5  # m/s down in NED frame (positive value = descent)
+    descent_rate = 0.35  # m/s (slower for better control)
+    centered_frames = 0
+    required_centered_frames = 5  # Must be centered for this many frames before descending
 
     while vehicle.armed:
         current_alt = vehicle.location.global_relative_frame.alt
-        
 
+        # Final landing trigger: send GPS and land at 1.5m AGL
         if current_alt <= 1.5:
-            # Get UAV GPS and velocity data
             drop_lat = vehicle.location.global_frame.lat
             drop_lon = vehicle.location.global_frame.lon
             drop_alt = vehicle.location.global_frame.alt
             rel_alt = vehicle.location.global_relative_frame.alt
-            velocity_north = vehicle.velocity[0]  # North velocity (m/s)
-            velocity_east = vehicle.velocity[1]   # East velocity (m/s)
-            velocity_down = vehicle.velocity[2]   # Down velocity (m/s)
+            velocity_north = vehicle.velocity[0]
+            velocity_east = vehicle.velocity[1]
+            velocity_down = vehicle.velocity[2]
 
             if drop_lat is None or drop_lon is None or drop_lat == 0 or drop_lon == 0:
                 print("Error: No valid GPS data available")
             else:
-                # Create a covariance matrix with NaN (unknown values)
                 covariance_matrix = np.full((36,), float('nan'), dtype=np.float32)
 
                 print("GPS STATUS: %s" % vehicle.gps_0.fix_type)
-                # Create MAVLink message with GPS and velocity data
                 msg = telem_link.mav.global_position_int_cov_encode(
-                    int(time.time() * 1e6),  # Timestamp (microseconds)
-                    mavutil.mavlink.MAV_ESTIMATOR_TYPE_GPS,  # MAV_ESTIMATOR_TYPE_GPS (3 = GPS-based estimation)
-                    int(drop_lat * 1e7),  # Latitude in degrees * 1E7
-                    int(drop_lon * 1e7),  # Longitude in degrees * 1E7
-                    int(drop_alt * 1000),  # Altitude above MSL in mm
-                    int(rel_alt * 1000),  # Relative altitude in mm
-                    float(velocity_north),  # Velocity North (m/s)
-                    float(velocity_east),   # Velocity East (m/s)
-                    float(velocity_down),   # Velocity Down (m/s)
-                    covariance_matrix  # 6x6 Covariance matrix
+                    int(time.time() * 1e6),
+                    mavutil.mavlink.MAV_ESTIMATOR_TYPE_GPS,
+                    int(drop_lat * 1e7),
+                    int(drop_lon * 1e7),
+                    int(drop_alt * 1000),
+                    int(rel_alt * 1000),
+                    float(velocity_north),
+                    float(velocity_east),
+                    float(velocity_down),
+                    covariance_matrix
                 )
 
-
-                    # Send the message to the other Pi
                 telem_link.mav.send(msg)
                 print(f"Sent GLOBAL_POSITION_INT_COV Data: Lat {drop_lat}, Lon {drop_lon}, Alt {drop_alt}, VelN {velocity_north}, VelE {velocity_east}, VelD {velocity_down}")
                 print("Reached 1 meter AGL. Switching to LAND mode.")
                 vehicle.mode = VehicleMode("LAND")
                 break
 
+        # Detect ArUco marker
         found, marker_id, corners = detect_aruco_marker()
+
         if found:
             print(f"Marker {marker_id} detected! Adjusting position...")
             x_avg = np.mean(corners[0][0][:, 0])
@@ -185,17 +185,31 @@ def precision_landing():
             x_ang = (x_avg - width * 0.5) * (horizontal_fov / width)
             y_ang = (y_avg - height * 0.5) * (vertical_fov / height)
 
-            if abs(x_ang) < 0.05 and abs(y_ang) < 0.05:
-                print("Marker centered. Descending...")
-                send_local_ned_velocity(0, 0, descent_rate)
+            # Dynamically tighten centering threshold when closer to the ground
+        
+            center_threshold = 0.05
+
+            # If marker is centered within the angular threshold
+            if abs(x_ang) < center_threshold and abs(y_ang) < center_threshold:
+                centered_frames += 1
+                print(f"Marker centered ({centered_frames}/{required_centered_frames})")
+                if centered_frames >= required_centered_frames:
+                    print("Marker stable. Descending...")
+                    send_local_ned_velocity(0, 0, descent_rate)
+                else:
+                    print("Holding position while confirming stability...")
+                    send_local_ned_velocity(0, 0, 0)  # Hover
             else:
-                send_local_ned_velocity(-x_ang * 0.3, -y_ang * 0.3, 0)
+                print("Marker detected but not centered.")
+                centered_frames = 0
+                send_local_ned_velocity(-x_ang * 0.3, -y_ang * 0.3, 0)  # Move toward marker
 
             last_x_ang, last_y_ang = x_ang, y_ang
         else:
-            print("Marker lost, descending while maintaining last direction.")
-            send_local_ned_velocity(0, 0, descent_rate)
+            print("Marker lost, descending while maintaining last known direction.")
+            send_local_ned_velocity(0, 0, descent_rate)  # Cautious descent
 
+        # Send dummy landing target message (required for some firmwares)
         msg = vehicle.message_factory.landing_target_encode(
             0, 0, mavutil.mavlink.MAV_FRAME_BODY_OFFSET_NED,
             last_x_ang, last_y_ang, 0, 0, 0)
@@ -203,6 +217,7 @@ def precision_landing():
         vehicle.flush()
 
         time.sleep(0.5)
+
 
 
 def goto_waypoint(waypoint, waypoint_number):
