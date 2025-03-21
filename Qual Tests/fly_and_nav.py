@@ -202,7 +202,7 @@ def precision_landing():
             else:
                 print("Marker detected but not centered.")
                 centered_frames = 0
-                send_local_ned_velocity(-x_ang * 0.3, -y_ang * 0.3, 0)  # Move toward marker
+                send_local_ned_velocity(-x_ang * 0.4, -y_ang * 0.4, 0)  # Move toward marker
 
             last_x_ang, last_y_ang = x_ang, y_ang
         else:
