@@ -127,12 +127,8 @@ vehicle.airspeed = 2.2 #m/s
 
 # Waypoints List
 waypoints = [
-    LocationGlobalRelative(, , 4),
-    LocationGlobalRelative(, , 4),
-    LocationGlobalRelative(, , 4),
-    LocationGlobalRelative(, , 4),
-    LocationGlobalRelative(, , 4),
-    LocationGlobalRelative(, , 4)  # Returning to first waypoint
+    LocationGlobalRelative(0,0, 4),
+    LocationGlobalRelative(0,0, 4)  # Returning to first waypoint
 ]
 
 # Move through waypoints without waiting
