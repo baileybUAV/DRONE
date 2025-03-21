@@ -197,7 +197,8 @@ def goto_waypoint(waypoint, waypoint_number):
                 time.sleep(1)
             vehicle.close()
             print("Drone has landed safely")
-            break
+            exit()
+            
         print(f"Distance to waypoint {waypoint_number}: {distance:.2f}m")
         time.sleep(1)
 
