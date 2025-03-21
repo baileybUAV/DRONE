@@ -64,47 +64,21 @@ def takeoff(aTargetAltitude):
             break
         time.sleep(1)
 
-# Function to calculate distance between two GPS coordinates
-def distance_to(target_location, current_location):
-    dlat = target_location.lat - current_location.lat
-    dlong = target_location.lon - current_location.lon
-    return math.sqrt((dlat ** 2) + (dlong ** 2)) * 1.113195e5
-
-# Send local NED velocity
-def send_local_ned_velocity(vx, vy, vz):
+# Send position target in local NED frame (used for 50-yard forward movement)
+def send_position_target_local_ned_example():
+    print("Sending SET_POSITION_TARGET_LOCAL_NED message for forward movement")
     msg = vehicle.message_factory.set_position_target_local_ned_encode(
-        0, 0, 0,
-        mavutil.mavlink.MAV_FRAME_BODY_OFFSET_NED,
-        0b0000111111000111,
-        0, 0, 0,
-        vx, vy, vz,
-        0, 0, 0,
-        0, 0)
+        0,  # time_boot_ms
+        0, 0,  # target system, target component
+        mavutil.mavlink.MAV_FRAME_LOCAL_NED,  # Coordinate frame
+        0b0000111111111000,  # type_mask: only positions enabled
+        45.72, 0, -6,  # North, East, Down: 50 yards forward, maintaining altitude
+        0, 0, 0,  # velocity
+        0, 0, 0,  # acceleration
+        0, 0      # yaw, yaw_rate
+    )
     vehicle.send_mavlink(msg)
     vehicle.flush()
-
-# Set local NED position
-def set_position_target_local_ned(north, east, down):
-    msg = vehicle.message_factory.set_position_target_local_ned_encode(
-        0, 0, 0,
-        mavutil.mavlink.MAV_FRAME_LOCAL_NED,
-        0b0000111111111000,
-        north, east, down,
-        0, 0, 0,
-        0, 0, 0,
-        0, 0)
-    vehicle.send_mavlink(msg)
-    vehicle.flush()
-
-# Function to move forward a specified distance in meters
-def move_forward_by_distance(distance_meters, speed_mps=5):
-    duration = distance_meters / speed_mps
-    print(f"Moving forward {distance_meters}m for {duration:.1f} seconds...")
-    start_time = time.time()
-    while time.time() - start_time < duration:
-        send_local_ned_velocity(speed_mps, 0, 0)
-        time.sleep(0.1)
-    send_local_ned_velocity(0, 0, 0)
 
 # Function to land the drone safely
 def land():
@@ -125,8 +99,11 @@ print("MAIN: Manual Arm Success")
 takeoff(6)
 print("MAIN: TakeOff Completed")
 
-print("MAIN: Moving forward 50 yards")
-move_forward_by_distance(45.72)  # 50 yards in meters
+print("MAIN: Sending position target to move 50 yards forward")
+send_position_target_local_ned_example()
+
+# Allow time to reach position
+time.sleep(10)
 
 land()
 print("MAIN: If the drone is not upside down, congrats!")

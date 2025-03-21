@@ -95,7 +95,7 @@ while not dropzone_found:
         print("Searching for centered DropZone...")
     time.sleep(1)
 
-# Begin data sending loop for 1 minute
+# Begin data sending loop for 1 minute every 2 seconds
 start_time = time.time()
 while time.time() - start_time < 60:
     lat = vehicle.location.global_frame.lat
