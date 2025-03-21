@@ -132,7 +132,7 @@ def detect_aruco_marker():
 def precision_landing():
     print("Initiating precision landing.")
     last_x_ang, last_y_ang = 0, 0
-    descent_rate = 0.2  # m/s down in NED frame (positive value = descent)
+    descent_rate = 0.5  # m/s down in NED frame (positive value = descent)
 
     while vehicle.armed:
         current_alt = vehicle.location.global_relative_frame.alt
@@ -185,7 +185,7 @@ def precision_landing():
             x_ang = (x_avg - width * 0.5) * (horizontal_fov / width)
             y_ang = (y_avg - height * 0.5) * (vertical_fov / height)
 
-            if abs(x_ang) < 0.01 and abs(y_ang) < 0.01:
+            if abs(x_ang) < 0.05 and abs(y_ang) < 0.05:
                 print("Marker centered. Descending...")
                 send_local_ned_velocity(0, 0, descent_rate)
             else:
