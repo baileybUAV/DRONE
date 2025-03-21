@@ -93,7 +93,7 @@ def goto_waypoint(waypoint, waypoint_number):
         current_location = vehicle.location.global_relative_frame
         distance = distance_to(waypoint, current_location)
 
-        if distance < 0.5:  # Stop when within 1 meter of the target
+        if distance < 0.25:  # Stop when within 1 meter of the target
             print(f"Reached waypoint {waypoint_number}")
             break
 
@@ -122,7 +122,7 @@ takeoff(4)  # Takeoff to 4 meters
 print("MAIN: TakeOff Completed")
 
 print("Setting airspeed to 5 mph")
-vehicle.airspeed = 2.2 #m/s
+vehicle.groundspeed = 2.2 #m/s
 
 # Waypoints List
 waypoints = [
