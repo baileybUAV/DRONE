@@ -1,6 +1,4 @@
 
-#This is the improved_autosquare.py with an added waypoint outside the geofence 
-# Use to test the drones reaction during a breach
 
 from dronekit import connect, VehicleMode, LocationGlobalRelative, APIException
 from pymavlink import mavutil
