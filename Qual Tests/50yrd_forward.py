@@ -91,7 +91,6 @@ def land():
 
 # ---- Begin mission ----
 print("MAIN: Code Started")
-print("Current Time:", time.strftime("%Y-%m-%d %H:%M:%S"))
 
 manaul_arm()
 print("MAIN: Manual Arm Success")
@@ -107,5 +106,5 @@ time.sleep(10)
 
 land()
 print("MAIN: If the drone is not upside down, congrats!")
-print("Current Time:", time.strftime("%Y-%m-%d %H:%M:%S"))
+
 exit()
