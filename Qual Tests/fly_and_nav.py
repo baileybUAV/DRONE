@@ -236,11 +236,11 @@ print("Connected to drone.")
 telem_link = setup_telem_connection()
 
 #vehicle.parameters['PLND_ENABLED'] = 1 #enable precision landing
-vehicle.parameters['PLND_TYPE'] = 1 #1 for companion computer
-vehicle.parameters['PLND_EST_TYPE'] = 0 #0 for raw sensor, 1 for kalman filter pos estimation
-vehicle.parameters['LAND_SPEED'] = 15 #speed in cm/s
+#vehicle.parameters['PLND_TYPE'] = 1 #1 for companion computer
+#vehicle.parameters['PLND_EST_TYPE'] = 0 #0 for raw sensor, 1 for kalman filter pos estimation
+#vehicle.parameters['LAND_SPEED'] = 15 #speed in cm/s
 
-manual_arm()
+manaul_arm()
 takeoff(takeoff_height)
 print("Setting airspeed to 5 mp/h")
 vehicle.airspeed = 1
