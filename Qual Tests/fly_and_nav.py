@@ -57,27 +57,43 @@ def connectMyCopter():
   print("Mode: %s" % vehicle.mode.name)     
   return vehicle
 
-def manual_arm():
-    print("    Pre-arm checks")
-    while not vehicle.is_armable:
-        print("    Waiting for vehicle to initialise...")
-        time.sleep(1)
-    while not vehicle.armed:
-        print("    Waiting for arming...")
-        time.sleep(1)
-    vehicle.mode = VehicleMode("GUIDED")
-    print("   Vehicle armed.")
-    print("   Mode: %s" % vehicle.mode.name)
+#Wait for manual arming function
+def manaul_arm():
+  print ("    Pre-arm checks")
+  # Don't let the user try to arm until autopilot is ready
+  while not vehicle.is_armable:
+    print ("    Waiting for vehicle to initialise...")
+    time.sleep(1)
 
+  while not vehicle.armed:
+    print ("    Waiting for arming...")
+    time.sleep(1)
+
+  print("   Waiting for manual arming...")
+  while not vehicle.armed:
+    print("   Waiting for arming...")
+    time.sleep(1)
+
+  vehicle.mode = VehicleMode("GUIDED")
+
+  print("   Vehicle armed.")
+  print("   Mode: %s" % vehicle.mode.name) 
+
+d# Function to arm and then takeoff to a specified altitude
 def takeoff(aTargetAltitude):
-    print("    Taking off!")
-    vehicle.simple_takeoff(aTargetAltitude)
-    while True:
-        print("    Altitude: ", vehicle.location.global_relative_frame.alt)
-        if vehicle.location.global_relative_frame.alt >= aTargetAltitude * 0.80:
-            print("    Reached target altitude")
-            break
-        time.sleep(1)
+
+  print ("    Taking off!")
+  vehicle.simple_takeoff(aTargetAltitude) # Take off to target altitude
+
+  # Check that vehicle has reached takeoff altitude
+  while True:
+    print ("    Altitude: ", vehicle.location.global_relative_frame.alt)
+    #Break and return from function just below target altitude
+    if vehicle.location.global_relative_frame.alt>=aTargetAltitude*0.80:
+      print ("    Reached target altitude")
+      #print("Height from Lidar: " % vehicle.rangefinder1)
+      break
+    time.sleep(1)
 
 def setup_telem_connection():
     telem_port = "/dev/ttyUSB0"
@@ -219,7 +235,7 @@ vehicle = connectMyCopter()
 print("Connected to drone.")
 telem_link = setup_telem_connection()
 
-vehicle.parameters['PLND_ENABLED'] = 1 #enable precision landing
+#vehicle.parameters['PLND_ENABLED'] = 1 #enable precision landing
 vehicle.parameters['PLND_TYPE'] = 1 #1 for companion computer
 vehicle.parameters['PLND_EST_TYPE'] = 0 #0 for raw sensor, 1 for kalman filter pos estimation
 vehicle.parameters['LAND_SPEED'] = 15 #speed in cm/s
