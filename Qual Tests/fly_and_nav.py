@@ -79,7 +79,7 @@ def manaul_arm():
   print("   Vehicle armed.")
   print("   Mode: %s" % vehicle.mode.name) 
 
-d# Function to arm and then takeoff to a specified altitude
+# Function to arm and then takeoff to a specified altitude
 def takeoff(aTargetAltitude):
 
   print ("    Taking off!")
