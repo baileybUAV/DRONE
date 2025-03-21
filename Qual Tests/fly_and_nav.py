@@ -35,15 +35,27 @@ horizontal_fov = 70 * (math.pi / 180)
 vertical_fov = 70 * (height / width) * (math.pi / 180)
 
 # FUNCTIONS
+# Connect to the Vehicle function
 def connectMyCopter():
-    print("Connecting Pi to drone...")
-    parser = argparse.ArgumentParser(description='commands')
-    parser.add_argument('--connect')
-    args = parser.parse_args()
-    connection_string = args.connect if args.connect else "/dev/ttyAMA0"
-    baud_rate = 57600
-    vehicle = connect(connection_string, baud=baud_rate, wait_ready=True)
-    return vehicle
+  print("Start Connection")
+  parser = argparse.ArgumentParser(description='commands')
+  parser.add_argument('--connect')
+  args = parser.parse_args()
+
+  connection_string = "/dev/ttyAMA0"
+  baud_rate = 57600
+
+  print("Connecting Pi to Drone...")
+  vehicle = connect(connection_string,baud=baud_rate) 
+  print("GPS: %s" % vehicle.gps_0)
+  print("Battery: %s" % vehicle.battery)
+  print("Armable?: %s" % vehicle.is_armable)
+  print("Rangefinder distance: %s" % vehicle.rangefinder.distance)
+  print("Global Location: %s" % vehicle.location.global_frame)
+  print("Global Location (relative altitude): %s" % vehicle.location.global_relative_frame)
+  print("Local Location: %s" % vehicle.location.local_frame)
+  print("Mode: %s" % vehicle.mode.name)     
+  return vehicle
 
 def manual_arm():
     print("    Pre-arm checks")
