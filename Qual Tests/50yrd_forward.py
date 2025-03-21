@@ -72,7 +72,7 @@ def send_position_target_local_ned_example():
         0, 0,  # target system, target component
         mavutil.mavlink.MAV_FRAME_LOCAL_NED,  # Coordinate frame
         0b0000111111111000,  # type_mask: only positions enabled
-        45.72, 0, -6,  # North, East, Down: 50 yards forward, maintaining altitude
+        30, 0, -6,  # North, East, Down: 50 yards forward, maintaining altitude
         0, 0, 0,  # velocity
         0, 0, 0,  # acceleration
         0, 0      # yaw, yaw_rate
