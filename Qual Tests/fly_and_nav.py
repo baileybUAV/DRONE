@@ -215,7 +215,7 @@ vehicle.parameters['LAND_SPEED'] = 15 #speed in cm/s
 manual_arm()
 takeoff(takeoff_height)
 print("Setting airspeed to 5 mp/h")
-vehicle.airspeed = 2.2
+vehicle.airspeed = 1
 
 # Waypoints List (add coordinates here)
 waypoints = [
