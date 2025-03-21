@@ -51,14 +51,7 @@ def setup_telem_connection():
     print("Telemetry link established!")
     return telem_link
 
-def send_mavlink_message(text):
-    """ Sends a MAVLink STATUSTEXT message to Mission Planner. """
-    msg = vehicle.message_factory.statustext_encode(
-        mavutil.mavlink.MAV_SEVERITY_INFO,  # Severity Level (INFO, WARNING, ERROR, etc.)
-        text.encode()  # Message (must be encoded as bytes)
-    )
-    vehicle.send_mavlink(msg)
-    vehicle.flush()
+
 
 
 ##MAIN CODE##
@@ -88,7 +81,7 @@ while True:
         # Create MAVLink message with GPS and velocity data
         msg = telem_link.mav.global_position_int_cov_encode(
             int(time.time() * 1e6),  # Timestamp (microseconds)
-            3,  # MAV_ESTIMATOR_TYPE_GPS (3 = GPS-based estimation)
+            mavutil.mavlink.MAV_ESTIMATOR_TYPE_GPS,  # MAV_ESTIMATOR_TYPE_GPS (3 = GPS-based estimation)
             int(lat * 1e7),  # Latitude in degrees * 1E7
             int(lon * 1e7),  # Longitude in degrees * 1E7
             int(alt * 1000),  # Altitude above MSL in mm
@@ -103,7 +96,6 @@ while True:
         # Send the message to the other Pi
         telem_link.mav.send(msg)
         print(f"Sent GLOBAL_POSITION_INT_COV Data: Lat {lat}, Lon {lon}, Alt {alt}, VelN {velocity_north}, VelE {velocity_east}, VelD {velocity_down}")
-        send_mavlink_message("Location & velocity sent via GLOBAL_POSITION_INT_COV")
         print("Location & Velocity Sent\n")    
 
     time.sleep(2)

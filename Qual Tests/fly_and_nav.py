@@ -76,6 +76,16 @@ def takeoff(aTargetAltitude):
             break
         time.sleep(1)
 
+# Function to establish telemetry connection between Raspberry Pis
+def setup_telem_connection():
+    telem_port = "/dev/ttyUSB0"  # USB telemetry module
+    baud_rate = 57600  # Ensure the correct baud rate
+    
+    print("Connecting to telemetry module for Pi-to-Pi communication...")
+    telem_link = mavutil.mavlink_connection(telem_port, baud=baud_rate)
+    print("Telemetry link established!")
+    return telem_link
+
 def send_local_ned_velocity(vx, vy, vz):
     """ Sends velocity commands to adjust drone position. """
     msg = vehicle.message_factory.set_position_target_local_ned_encode(
@@ -142,6 +152,41 @@ def precision_landing():
         print(f"Adjusting landing: x={last_x_ang:.4f}, y={last_y_ang:.4f}")
 
         time.sleep(0.5) 
+
+        # Get UAV GPS and velocity data
+        lat = vehicle.location.global_frame.lat
+        lon = vehicle.location.global_frame.lon
+        alt = vehicle.location.global_frame.alt
+        rel_alt = vehicle.location.global_relative_frame.alt
+        velocity_north = vehicle.velocity[0]  # North velocity (m/s)
+        velocity_east = vehicle.velocity[1]   # East velocity (m/s)
+        velocity_down = vehicle.velocity[2]   # Down velocity (m/s)
+
+        if lat is None or lon is None or lat == 0 or lon == 0:
+            print("Error: No valid GPS data available")
+        else:
+            # Create a covariance matrix with NaN (unknown values)
+            covariance_matrix = np.full((36,), float('nan'), dtype=np.float32)
+
+            print("GPS STATUS: %s" % vehicle.gps_0.fix_type)
+            # Create MAVLink message with GPS and velocity data
+            msg = telem_link.mav.global_position_int_cov_encode(
+                int(time.time() * 1e6),  # Timestamp (microseconds)
+                mavutil.mavlink.MAV_ESTIMATOR_TYPE_GPS,  # MAV_ESTIMATOR_TYPE_GPS (3 = GPS-based estimation)
+                int(lat * 1e7),  # Latitude in degrees * 1E7
+                int(lon * 1e7),  # Longitude in degrees * 1E7
+                int(alt * 1000),  # Altitude above MSL in mm
+                int(rel_alt * 1000),  # Relative altitude in mm
+                float(velocity_north),  # Velocity North (m/s)
+                float(velocity_east),   # Velocity East (m/s)
+                float(velocity_down),   # Velocity Down (m/s)
+                covariance_matrix  # 6x6 Covariance matrix
+            )
+
+
+            # Send the message to the other Pi
+            telem_link.mav.send(msg)
+            print(f"Sent GLOBAL_POSITION_INT_COV Data: Lat {lat}, Lon {lon}, Alt {alt}, VelN {velocity_north}, VelE {velocity_east}, VelD {velocity_down}")
     
     print("Switching to LAND mode...")
     vehicle.mode = VehicleMode("LAND")
@@ -175,6 +220,7 @@ def goto_waypoint(waypoint, waypoint_number):
 # ---- Begin mission ----
 vehicle = connectMyCopter()
 print("Connected to drone.")
+telem_link = setup_telem_connection()
 
 vehicle.parameters['PLND_ENABLED'] = 1
 vehicle.parameters['PLND_TYPE'] = 1
