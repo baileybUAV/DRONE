@@ -104,7 +104,51 @@ def detect_aruco_marker():
 def precision_landing():
     print("Initiating precision landing.")
     last_x_ang, last_y_ang = 0, 0
+    descent_rate = 0.2  # m/s down in NED frame (positive value = descent)
+
     while vehicle.armed:
+        current_alt = vehicle.location.global_relative_frame.alt
+        
+
+        if current_alt <= 1.5:
+            # Get UAV GPS and velocity data
+            drop_lat = vehicle.location.global_frame.lat
+            drop_lon = vehicle.location.global_frame.lon
+            drop_alt = vehicle.location.global_frame.alt
+            rel_alt = vehicle.location.global_relative_frame.alt
+            velocity_north = vehicle.velocity[0]  # North velocity (m/s)
+            velocity_east = vehicle.velocity[1]   # East velocity (m/s)
+            velocity_down = vehicle.velocity[2]   # Down velocity (m/s)
+
+            if drop_lat is None or drop_lon is None or drop_lat == 0 or drop_lon == 0:
+                print("Error: No valid GPS data available")
+            else:
+                # Create a covariance matrix with NaN (unknown values)
+                covariance_matrix = np.full((36,), float('nan'), dtype=np.float32)
+
+                print("GPS STATUS: %s" % vehicle.gps_0.fix_type)
+                # Create MAVLink message with GPS and velocity data
+                msg = telem_link.mav.global_position_int_cov_encode(
+                    int(time.time() * 1e6),  # Timestamp (microseconds)
+                    mavutil.mavlink.MAV_ESTIMATOR_TYPE_GPS,  # MAV_ESTIMATOR_TYPE_GPS (3 = GPS-based estimation)
+                    int(drop_lat * 1e7),  # Latitude in degrees * 1E7
+                    int(drop_lon * 1e7),  # Longitude in degrees * 1E7
+                    int(drop_alt * 1000),  # Altitude above MSL in mm
+                    int(rel_alt * 1000),  # Relative altitude in mm
+                    float(velocity_north),  # Velocity North (m/s)
+                    float(velocity_east),   # Velocity East (m/s)
+                    float(velocity_down),   # Velocity Down (m/s)
+                    covariance_matrix  # 6x6 Covariance matrix
+                )
+
+
+                    # Send the message to the other Pi
+                telem_link.mav.send(msg)
+                print(f"Sent GLOBAL_POSITION_INT_COV Data: Lat {drop_lat}, Lon {drop_lon}, Alt {drop_alt}, VelN {velocity_north}, VelE {velocity_east}, VelD {velocity_down}")
+                print("Reached 1 meter AGL. Switching to LAND mode.")
+                vehicle.mode = VehicleMode("LAND")
+                break
+
         found, marker_id, corners = detect_aruco_marker()
         if found:
             print(f"Marker {marker_id} detected! Adjusting position...")
@@ -112,26 +156,26 @@ def precision_landing():
             y_avg = np.mean(corners[0][0][:, 1])
             x_ang = (x_avg - width * 0.5) * (horizontal_fov / width)
             y_ang = (y_avg - height * 0.5) * (vertical_fov / height)
+
             if abs(x_ang) < 0.01 and abs(y_ang) < 0.01:
-                print("Marker centered. Holding position for descent.")
+                print("Marker centered. Descending...")
+                send_local_ned_velocity(0, 0, descent_rate)
             else:
                 send_local_ned_velocity(-x_ang * 0.3, -y_ang * 0.3, 0)
+
             last_x_ang, last_y_ang = x_ang, y_ang
         else:
-            print("Marker lost, using last known position.")
+            print("Marker lost, descending while maintaining last direction.")
+            send_local_ned_velocity(0, 0, descent_rate)
+
         msg = vehicle.message_factory.landing_target_encode(
             0, 0, mavutil.mavlink.MAV_FRAME_BODY_OFFSET_NED,
             last_x_ang, last_y_ang, 0, 0, 0)
         vehicle.send_mavlink(msg)
         vehicle.flush()
-        print(f"Adjusting landing: x={last_x_ang:.4f}, y={last_y_ang:.4f}")
+
         time.sleep(0.5)
-    print("Switching to LAND mode...")
-    vehicle.mode = VehicleMode("LAND")
-    while vehicle.mode != 'LAND':
-        print("Waiting for LAND mode...")
-        time.sleep(1)
-    print("Drone has landed.")
+
 
 def goto_waypoint(waypoint, waypoint_number):
     print(f"Going to waypoint {waypoint_number}...")
