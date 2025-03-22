@@ -103,12 +103,12 @@ def send_land_message(x, y):
     vehicle.send_mavlink(msg)
     vehicle.flush()
 
-def send_body_ned_velocity(vx, vy, vz):
+def send_velocity(vx, vy, vz):
     msg = vehicle.message_factory.set_position_target_local_ned_encode(
         0,
         0, 0,
         mavutil.mavlink.MAV_FRAME_BODY_FRD,
-        0b0000001111000111,
+        0b110111000111,
         0, 0, 0,
         vx, vy, vz,
         0, 0, 0,
@@ -144,7 +144,7 @@ def precision_land():
 
             vx = -x_ang * 5 # Tweak gain as needed
             vy = -y_ang * 5
-            send_body_ned_velocity(vx, vy, 0)
+            send_velocity(vx, vy, 0)
 
             if abs(x_ang) < angle_threshold and abs(y_ang) < angle_threshold:
                 if vehicle.mode.name != 'LAND':
@@ -155,7 +155,7 @@ def precision_land():
                 vx = -x_ang * 5  # Tweak gain as needed
                 vy = -y_ang * 5
                 print(f"Sending correction velocity vx={vx:.2f}, vy={vy:.2f}")
-                send_body_ned_velocity(vx, vy, 0)
+                send_velocity(vx, vy, 0)
         else:
             print("Marker not found. Hovering...")
             send_land_message(0, 0)
