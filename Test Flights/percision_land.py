@@ -14,10 +14,10 @@ from picamera2 import Picamera2
 takeoff_altitude = 6  # meters
 marker_id = 1
 marker_size = 0.253  # centi? meters
-angle_threshold = 15 * (math.pi / 180)  # radians
+angle_threshold = 3 * (math.pi / 180)  # radians
 land_alt_threshold = 0.5  # meters
 descent_speed = 0.2  # m/s
-update_freq = 8  # Hz
+update_freq = 10  # Hz
 camera_resolution = (1280, 720)
 
 #Connect pi to drone first
@@ -174,6 +174,7 @@ def precision_land():
 # ------------------- CONNECT TO VEHICLE -------------------
 
 print("Starting test flight...")
+print(angle_threshold)
 manual_arm_and_takeoff(takeoff_altitude)
 time.sleep(2)
 
