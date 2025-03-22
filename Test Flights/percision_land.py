@@ -162,8 +162,8 @@ def precision_land():
                     print("Switching to LAND mode...")
             else:
                 # Apply proportional velocity correction to center
-                vx = -x_ang * 0.5  # Tweak gain as needed
-                vy = -y_ang * 0.5
+                vx = -x_ang * 2  # Tweak gain as needed
+                vy = -y_ang * 2
                 print(f"Sending correction velocity vx={vx:.2f}, vy={vy:.2f}")
                 send_ned_velocity(vx, vy, 0)
         else:
