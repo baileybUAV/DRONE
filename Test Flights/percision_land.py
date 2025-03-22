@@ -14,7 +14,7 @@ from picamera2 import Picamera2
 takeoff_altitude = 6  # meters
 marker_id = 1
 marker_size = 0.253  # centi? meters
-angle_threshold = 10 * (math.pi / 180)  # radians
+angle_threshold = 3 * (math.pi / 180)  # radians
 land_alt_threshold = 0.5  # meters
 descent_speed = 0.2  # m/s
 update_freq = 20  # Hz
