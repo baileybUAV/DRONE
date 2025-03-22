@@ -154,9 +154,7 @@ def precision_land():
 
             print(f"DropZone detected at angle x={math.degrees(x_ang):.2f}, y={math.degrees(y_ang):.2f}")
 
-            vx = -x_ang * 5 # Tweak gain as needed
-            vy = -y_ang * 5
-            send_ned_velocity(vx, vy, 0)
+            
 
             if abs(x_ang) < angle_threshold and abs(y_ang) < angle_threshold:
                 if vehicle.mode.name != 'LAND':
@@ -164,8 +162,8 @@ def precision_land():
                     print("Switching to LAND mode...")
             else:
                 # Apply proportional velocity correction to center
-                vx = -x_ang * 5  # Tweak gain as needed
-                vy = -y_ang * 5
+                vx = -x_ang * 0.5  # Tweak gain as needed
+                vy = -y_ang * 0.5
                 print(f"Sending correction velocity vx={vx:.2f}, vy={vy:.2f}")
                 send_ned_velocity(vx, vy, 0)
         else:
