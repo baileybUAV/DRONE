@@ -17,7 +17,7 @@ marker_size = 0.253  # centi? meters
 angle_threshold = 3 * (math.pi / 180)  # radians
 land_alt_threshold = 0.5  # meters
 descent_speed = 0.2  # m/s
-update_freq = 20  # Hz
+update_freq = 5  # Hz
 camera_resolution = (1280, 720)
 
 #Connect pi to drone first
@@ -161,8 +161,8 @@ def precision_land():
                     print("Switching to LAND mode...")
             else:
                 # Apply proportional velocity correction to center
-                vx = x_ang * 2.5  # Tweak gain as needed
-                vy = y_ang * 2.5
+                vx = x_ang * 2  # Tweak gain as needed
+                vy = y_ang * 2
                 print(f"Sending correction velocity vx={vx:.2f}, vy={vy:.2f}")
                 send_ned_velocity(vx, vy, 0)
         else:
