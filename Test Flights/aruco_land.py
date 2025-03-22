@@ -176,10 +176,6 @@ def goto_waypoint(waypoint, waypoint_number):
 vehicle = connectMyCopter()
 print("Connected to drone.")
 
-vehicle.parameters['PLND_ENABLED'] = 1
-vehicle.parameters['PLND_TYPE'] = 1
-vehicle.parameters['PLND_EST_TYPE'] = 0
-vehicle.parameters['LAND_SPEED'] = 15
 
 manual_arm()
 takeoff(takeoff_height)
