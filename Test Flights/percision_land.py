@@ -5,6 +5,7 @@ import cv2.aruco as aruco
 import numpy as np
 import math
 import time
+import argparse
 from picamera2 import Picamera2
 
 # ------------------- CONFIGURATION -------------------
@@ -21,9 +22,31 @@ camera_resolution = (1280, 720)
 
 #Connect pi to drone first
 
-print("Connecting Pi to vehicle...")
-vehicle = connect(connection_string, baud=baud_rate, wait_ready=True)
-print("Pi Connected.")
+# Connect to the Vehicle function
+def connectMyCopter():
+  print("Start Connection")
+  parser = argparse.ArgumentParser(description='commands')
+  parser.add_argument('--connect')
+  args = parser.parse_args()
+
+  connection_string = "/dev/ttyAMA0"
+  baud_rate = 57600
+
+  print("Connecting Pi to Drone...")
+  vehicle = connect(connection_string,baud=baud_rate) 
+  print("GPS: %s" % vehicle.gps_0)
+  print("Battery: %s" % vehicle.battery)
+  print("Armable?: %s" % vehicle.is_armable)
+  print("Rangefinder distance: %s" % vehicle.rangefinder.distance)
+  print("Global Location: %s" % vehicle.location.global_frame)
+  print("Global Location (relative altitude): %s" % vehicle.location.global_relative_frame)
+  print("Local Location: %s" % vehicle.location.local_frame)
+  print("Mode: %s" % vehicle.mode.name)     
+  return vehicle
+
+  
+vehicle = connectMyCopter()
+print("Pi Connected")
 
 # ------------------- CAMERA SETUP -------------------
 picam2 = Picamera2()
