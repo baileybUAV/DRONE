@@ -10,12 +10,11 @@ from collections import deque
 from picamera2 import Picamera2
 
 # ------------------- CONFIGURATION -------------------
-connection_string = "/dev/ttyAMA0"
-baud_rate = 57600
+
 takeoff_altitude = 6  # meters
 marker_id = 1
 marker_size = 0.253  # centi? meters
-angle_threshold = 15 * (math.pi / 180)  # radians
+angle_threshold = 25 * (math.pi / 180)  # radians
 land_alt_threshold = 0.5  # meters
 descent_speed = 0.2  # m/s
 update_freq = 1.0  # Hz
@@ -72,7 +71,7 @@ def manual_arm_and_takeoff(target_alt):
         print("    Waiting for vehicle to initialize...")
         time.sleep(1)
 
-    print("    Waiting for manual arming (via RC/GCS)...")
+    print("    Waiting for manual arming...")
     while not vehicle.armed:
         print("    Vehicle not armed yet...")
         time.sleep(1)
@@ -91,106 +90,55 @@ def manual_arm_and_takeoff(target_alt):
 
 
 # ------------------- UTILS -------------------
-def get_location_metres(original_location, dNorth, dEast):
-    earth_radius = 6378137.0
-    dLat = dNorth / earth_radius
-    dLon = dEast / (earth_radius * math.cos(math.pi * original_location.lat / 180))
-    newlat = original_location.lat + (dLat * 180 / math.pi)
-    newlon = original_location.lon + (dLon * 180 / math.pi)
-    return LocationGlobalRelative(newlat, newlon, original_location.alt)
+# ------------------- LANDING HELPERS -------------------
+def send_land_message(x, y):
+    msg = vehicle.message_factory.landing_target_encode(
+        0,
+        0,
+        mavutil.mavlink.MAV_FRAME_BODY_OFFSET_NED,
+        x, y,
+        0, 0, 0)
+    vehicle.send_mavlink(msg)
+    vehicle.flush()
 
-def detect_marker():
-    img = picam2.capture_array()
-    img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-    img = cv2.undistort(img, camera_matrix, camera_distortion)
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    corners, ids, _ = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
-    if ids is not None and marker_id in ids:
-        index = np.where(ids == marker_id)[0][0]
-        rvecs, tvecs, _ = aruco.estimatePoseSingleMarkers(corners, marker_size, camera_matrix, camera_distortion)
-        return True, tvecs[index][0]
-    return False, None
-
-
+# ------------------- PRECISION LANDING -------------------
 def precision_landing():
-    print("Hovering and waiting for marker...")
+    print("Initiating precision landing sequence...")
+    while vehicle.armed:
+        img = picam2.capture_array()
+        img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+        img = cv2.undistort(img, camera_matrix, camera_distortion)
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-    # Simple low-pass filter buffer
-    buffer_len = 5
-    x_buffer = deque(maxlen=buffer_len)
-    y_buffer = deque(maxlen=buffer_len)
-    z_buffer = deque(maxlen=buffer_len)
+        corners, ids, _ = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
 
-    stable_count = 0
-    stable_required = 5
+        if ids is not None and marker_id in ids:
+            index = np.where(ids == marker_id)[0][0]
+            rvecs, tvecs, _ = aruco.estimatePoseSingleMarkers(corners, marker_size, camera_matrix, camera_distortion)
+            tvec = tvecs[index][0]
 
-    while True:
-        marker_found, tvec = detect_marker()
+            x_sum = sum([p[0] for p in corners[index][0]])
+            y_sum = sum([p[1] for p in corners[index][0]])
+            x_avg = x_sum / 4
+            y_avg = y_sum / 4
 
-        if not marker_found:
-            print("No marker. Holding hover...")
-            vehicle.simple_goto(vehicle.location.global_relative_frame)
-            stable_count = 0
-            time.sleep(1)
-            continue
+            x_ang = (x_avg - camera_resolution[0]/2) * ((70 * math.pi / 180) / camera_resolution[0])
+            y_ang = (y_avg - camera_resolution[1]/2) * ((70 * (720 / 1280) * (math.pi / 180)) / camera_resolution[1])
 
-        # tvec: [x, y, z] in camera frame
-        x_raw, y_raw, z_raw = tvec
+            print(f"DropZone detected at angle x={math.degrees(x_ang):.2f}, y={math.degrees(y_ang):.2f}")
 
-        # Fill buffer for smoothing
-        x_buffer.append(x_raw)
-        y_buffer.append(y_raw)
-        z_buffer.append(z_raw)
+            send_land_message(x_ang, y_ang)
 
-        # Use average for smoothing
-        x = np.mean(x_buffer)
-        y = np.mean(y_buffer)
-        z = np.mean(z_buffer)
-
-        # For downward camera:
-        # x = right → East
-        # y = down → -North (flip sign)
-        # z = altitude above marker
-
-        north_offset = -y
-        east_offset = x
-
-        # Use vehicle yaw to rotate into global frame
-        yaw = vehicle.attitude.yaw
-        north = north_offset * math.cos(yaw) - east_offset * math.sin(yaw)
-        east = north_offset * math.sin(yaw) + east_offset * math.cos(yaw)
-
-        current = vehicle.location.global_relative_frame
-        target = get_location_metres(current, north, east)
-
-        # Stability check
-        angle_x = math.atan2(x, z)
-        angle_y = math.atan2(y, z)
-        angle_error = math.sqrt(angle_x**2 + angle_y**2)
-
-        print(f"Smoothed marker offset (cm): x={x*100:.1f}, y={y*100:.1f}, z={z*100:.1f}")
-        print(f"Angle error: {math.degrees(angle_error):.1f}°")
-
-        if angle_error <= angle_threshold:
-            stable_count += 1
-            if stable_count >= stable_required:
-                new_alt = max(current.alt - descent_speed / update_freq, land_alt_threshold)
-                print("Marker aligned and stable. Descending.")
-            else:
-                new_alt = current.alt
-                print("Aligning before descent...")
+            if vehicle.mode.name != 'LAND':
+                vehicle.mode = VehicleMode('LAND')
+                print("Switching to LAND mode...")
         else:
-            stable_count = 0
-            new_alt = current.alt
-            print("Correcting position. Not descending yet.")
+            print("Marker not found. Hovering...")
+            send_land_message(0, 0)  # Send neutral angles to avoid drift
 
-        vehicle.simple_goto(LocationGlobalRelative(target.lat, target.lon, new_alt))
         time.sleep(1 / update_freq)
 
-        if current.alt <= land_alt_threshold + 0.1:
-            print("Reached landing threshold. Landing now.")
-            vehicle.mode = VehicleMode("LAND")
-            break
+
 
 
 
@@ -204,8 +152,7 @@ def precision_landing():
 
 print("Starting test flight...")
 manual_arm_and_takeoff(takeoff_altitude)
-
-precision_landing()
+time.sleep(2)
 
 while vehicle.armed:
     time.sleep(1)
