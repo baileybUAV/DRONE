@@ -11,8 +11,7 @@ from geopy.distance import geodesic as geopy_distance
 
 #############################
 
-vehicle = connectMyCopter()
-print("Pi Connected")
+
 
 # Initialize Pi Camera
 width = 1280
@@ -66,7 +65,8 @@ def connectMyCopter():
   print("Mode: %s" % vehicle.mode.name)     
   return vehicle
 
-  
+vehicle = connectMyCopter()
+print("Pi Connected")
 
 
 def manual_arm():
