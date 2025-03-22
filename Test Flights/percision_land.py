@@ -142,8 +142,8 @@ def precision_land():
 
             print(f"DropZone detected at angle x={math.degrees(x_ang):.2f}, y={math.degrees(y_ang):.2f}")
 
-            vx = -x_ang * 0.5  # Tweak gain as needed
-            vy = -y_ang * 0.5
+            vx = -x_ang  # Tweak gain as needed
+            vy = -y_ang 
             send_local_ned_velocity(vx, vy, 0)
 
             if abs(x_ang) < angle_threshold and abs(y_ang) < angle_threshold:
