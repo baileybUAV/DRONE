@@ -6,6 +6,7 @@ import numpy as np
 import math
 import time
 import argparse
+from collections import deque
 from picamera2 import Picamera2
 
 # ------------------- CONFIGURATION -------------------
@@ -13,7 +14,7 @@ connection_string = "/dev/ttyAMA0"
 baud_rate = 57600
 takeoff_altitude = 6  # meters
 marker_id = 1
-marker_size = 0.253  # meters
+marker_size = 25.3  # meters
 angle_threshold = 15 * (math.pi / 180)  # radians
 land_alt_threshold = 0.5  # meters
 descent_speed = 0.2  # m/s
@@ -110,40 +111,78 @@ def detect_marker():
         return True, tvecs[index][0]
     return False, None
 
+
 def precision_landing():
     print("Hovering and waiting for marker...")
+
+    # Simple low-pass filter buffer
+    buffer_len = 5
+    x_buffer = deque(maxlen=buffer_len)
+    y_buffer = deque(maxlen=buffer_len)
+    z_buffer = deque(maxlen=buffer_len)
+
+    stable_count = 0
+    stable_required = 5
+
     while True:
         marker_found, tvec = detect_marker()
 
         if not marker_found:
             print("No marker. Holding hover...")
             vehicle.simple_goto(vehicle.location.global_relative_frame)
+            stable_count = 0
             time.sleep(1)
             continue
 
-        x, y, z = tvec
-        angle_x = math.atan2(x, z)
-        angle_y = math.atan2(y, z)
+        # tvec: [x, y, z] in camera frame
+        x_raw, y_raw, z_raw = tvec
 
-        print(f"Marker offset (cm): x={x*100:.1f}, y={y*100:.1f}, z={z*100:.1f}")
-        print(f"Angle: {math.degrees(angle_x):.1f}°, {math.degrees(angle_y):.1f}°")
+        # Fill buffer for smoothing
+        x_buffer.append(x_raw)
+        y_buffer.append(y_raw)
+        z_buffer.append(z_raw)
 
-        # Convert to North/East movement based on yaw
-        x_uav = -y
-        y_uav = x
+        # Use average for smoothing
+        x = np.mean(x_buffer)
+        y = np.mean(y_buffer)
+        z = np.mean(z_buffer)
+
+        # For downward camera:
+        # x = right → East
+        # y = down → -North (flip sign)
+        # z = altitude above marker
+
+        north_offset = -y
+        east_offset = x
+
+        # Use vehicle yaw to rotate into global frame
         yaw = vehicle.attitude.yaw
-        north = x_uav * math.cos(yaw) - y_uav * math.sin(yaw)
-        east = x_uav * math.sin(yaw) + y_uav * math.cos(yaw)
+        north = north_offset * math.cos(yaw) - east_offset * math.sin(yaw)
+        east = north_offset * math.sin(yaw) + east_offset * math.cos(yaw)
 
         current = vehicle.location.global_relative_frame
         target = get_location_metres(current, north, east)
 
-        if math.sqrt(angle_x**2 + angle_y**2) <= angle_threshold:
-            new_alt = max(current.alt - descent_speed / update_freq, land_alt_threshold)
-            print("Marker aligned. Descending.")
+        # Stability check
+        angle_x = math.atan2(x, z)
+        angle_y = math.atan2(y, z)
+        angle_error = math.sqrt(angle_x**2 + angle_y**2)
+
+        print(f"Smoothed marker offset (cm): x={x*100:.1f}, y={y*100:.1f}, z={z*100:.1f}")
+        print(f"Angle error: {math.degrees(angle_error):.1f}°")
+
+        if angle_error <= angle_threshold:
+            stable_count += 1
+            if stable_count >= stable_required:
+                new_alt = max(current.alt - descent_speed / update_freq, land_alt_threshold)
+                print("Marker aligned and stable. Descending.")
+            else:
+                new_alt = current.alt
+                print("Aligning before descent...")
         else:
+            stable_count = 0
             new_alt = current.alt
-            print("Correcting position, not descending.")
+            print("Correcting position. Not descending yet.")
 
         vehicle.simple_goto(LocationGlobalRelative(target.lat, target.lon, new_alt))
         time.sleep(1 / update_freq)
@@ -152,6 +191,7 @@ def precision_landing():
             print("Reached landing threshold. Landing now.")
             vehicle.mode = VehicleMode("LAND")
             break
+
 
 
 
