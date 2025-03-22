@@ -17,7 +17,7 @@ marker_size = 0.253  # centi? meters
 angle_threshold = 3 * (math.pi / 180)  # radians
 land_alt_threshold = 0.5  # meters
 descent_speed = 0.2  # m/s
-update_freq = 10  # Hz
+update_freq = 20  # Hz
 camera_resolution = (1280, 720)
 
 #Connect pi to drone first
@@ -154,7 +154,6 @@ def precision_land():
 
             print(f"DropZone detected at angle x={math.degrees(x_ang):.2f}, y={math.degrees(y_ang):.2f}")
 
-            
 
             if abs(x_ang) < angle_threshold and abs(y_ang) < angle_threshold:
                 if vehicle.mode.name != 'LAND':
@@ -162,8 +161,8 @@ def precision_land():
                     print("Switching to LAND mode...")
             else:
                 # Apply proportional velocity correction to center
-                vx = -x_ang * 2  # Tweak gain as needed
-                vy = -y_ang * 2
+                vx = -x_ang * 2.5  # Tweak gain as needed
+                vy = -y_ang * 2.5
                 print(f"Sending correction velocity vx={vx:.2f}, vy={vy:.2f}")
                 send_ned_velocity(vx, vy, 0)
         else:
