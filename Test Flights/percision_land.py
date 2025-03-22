@@ -19,6 +19,12 @@ descent_speed = 0.2  # m/s
 update_freq = 1.0  # Hz
 camera_resolution = (1280, 720)
 
+#Connect pi to drone first
+
+print("Connecting Pi to vehicle...")
+vehicle = connect(connection_string, baud=baud_rate, wait_ready=True)
+print("Pi Connected.")
+
 # ------------------- CAMERA SETUP -------------------
 picam2 = Picamera2()
 config = picam2.create_preview_configuration(main={"size": camera_resolution, "format": "RGB888"})
@@ -132,9 +138,7 @@ def precision_landing():
 
 
 # ------------------- CONNECT TO VEHICLE -------------------
-print("Connecting Pi to vehicle...")
-vehicle = connect(connection_string, baud=baud_rate, wait_ready=True)
-print("Pi Connected.")
+
 print("Starting test flight...")
 manual_arm_and_takeoff(takeoff_altitude)
 
