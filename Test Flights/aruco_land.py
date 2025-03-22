@@ -192,8 +192,7 @@ def goto_waypoint(waypoint, waypoint_number):
         time.sleep(1)
 
 # ---- Begin mission ----
-vehicle = connectMyCopter()
-print("Connected to drone.")
+
 
 
 manual_arm()
