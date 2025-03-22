@@ -153,6 +153,7 @@ def precision_land():
 print("Starting test flight...")
 manual_arm_and_takeoff(takeoff_altitude)
 time.sleep(2)
+
 precision_land()
 
 print("Landed successfully.")
