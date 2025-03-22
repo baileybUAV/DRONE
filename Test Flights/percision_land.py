@@ -154,8 +154,6 @@ print("Starting test flight...")
 manual_arm_and_takeoff(takeoff_altitude)
 time.sleep(2)
 
-while vehicle.armed:
-    time.sleep(1)
 
 print("Landed successfully.")
 vehicle.close()
