@@ -17,7 +17,7 @@ marker_size = 0.253  # centi? meters
 angle_threshold = 15 * (math.pi / 180)  # radians
 land_alt_threshold = 0.5  # meters
 descent_speed = 0.2  # m/s
-update_freq = 1.0  # Hz
+update_freq = 8  # Hz
 camera_resolution = (1280, 720)
 
 #Connect pi to drone first
