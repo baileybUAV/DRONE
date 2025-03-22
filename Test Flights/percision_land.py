@@ -102,7 +102,7 @@ def send_land_message(x, y):
     vehicle.flush()
 
 # ------------------- PRECISION LANDING -------------------
-def precision_landing():
+def precision_land():
     print("Initiating precision landing sequence...")
     while vehicle.armed:
         img = picam2.capture_array()
@@ -153,7 +153,7 @@ def precision_landing():
 print("Starting test flight...")
 manual_arm_and_takeoff(takeoff_altitude)
 time.sleep(2)
-
+precision_land()
 
 print("Landed successfully.")
 vehicle.close()
