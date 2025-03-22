@@ -144,7 +144,7 @@ def precision_land():
 
             vx = -x_ang  # Tweak gain as needed
             vy = -y_ang 
-            send_local_ned_velocity(vx, vy, 0)
+            send_body_ned_velocity(vx, vy, 0)
 
             if abs(x_ang) < angle_threshold and abs(y_ang) < angle_threshold:
                 if vehicle.mode.name != 'LAND':
@@ -155,7 +155,7 @@ def precision_land():
                 vx = -x_ang * 0.5  # Tweak gain as needed
                 vy = -y_ang * 0.5
                 print(f"Sending correction velocity vx={vx:.2f}, vy={vy:.2f}")
-                send_local_ned_velocity(vx, vy, 0)
+                send_body_ned_velocity(vx, vy, 0)
         else:
             print("Marker not found. Hovering...")
             send_land_message(0, 0)
