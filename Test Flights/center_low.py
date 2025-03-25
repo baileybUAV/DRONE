@@ -15,13 +15,13 @@ marker_id = 0
 marker_size = 0.253  # meters (black square only)
 descent_speed = 0.2  # m/s downward
 final_land_height = 1.0  # meters above target
-fast_descent_speed = 0.5
-slow_descent_speed = 0.2
+fast_descent_speed = 0.35
+slow_descent_speed = 0.15
 slow_down_altitude = 3.0
 far_center_threshold = 50  # pixels
 near_center_threshold = 15  # pixels
-far_Kp = 0.005
-near_Kp = 0.002
+far_Kp = 0.004
+near_Kp = 0.001
 
 # ------------------- CONNECT TO VEHICLE -------------------
 # Connect to the Vehicle function
