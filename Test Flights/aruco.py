@@ -14,7 +14,7 @@ from picamera2 import Picamera2
 takeoff_altitude = 6  # meters
 marker_id = 0
 marker_size = 0.253  # centi? meters
-angle_threshold = 3 * (math.pi / 180)  # radians
+angle_threshold = 15 * (math.pi / 180)  # radians
 land_alt_threshold = 0.5  # meters
 descent_speed = 0.2  # m/s
 update_freq = 5  # Hz
@@ -129,6 +129,7 @@ def send_ned_velocity(velocity_x, velocity_y, velocity_z):
 
 
 # ------------------- PRECISION LANDING -------------------
+
 def precision_land():
     print("Initiating precision landing sequence...")
 
@@ -159,30 +160,36 @@ def precision_land():
             x_ang = dx * (HFOV / camera_resolution[0])
             y_ang = dy * (VFOV / camera_resolution[1])
 
-            # Get altitude for LANDING_TARGET message
+            # Send PLND message with dummy distance or real LiDAR
             measured_distance = vehicle.rangefinder.distance
             if measured_distance is None or measured_distance <= 0:
-                measured_distance = 10.0  # fallback if LiDAR fails
+                measured_distance = 10.0
+            send_land_message(x_ang, y_ang, measured_distance)
 
-            send_land_message(x_ang, y_ang)
-
-            print(f"DropZone detected at angle x={math.degrees(x_ang):.2f}, y={math.degrees(y_ang):.2f}")
+            print(f"[INFO] x_ang={math.degrees(x_ang):.2f}°, y_ang={math.degrees(y_ang):.2f}°")
+            print(f"[DEBUG] Current mode: {vehicle.mode.name}")
 
             if abs(x_ang) < angle_threshold and abs(y_ang) < angle_threshold:
-                if vehicle.mode.name != 'LAND':
-                    print("Centered. Switching to LAND mode and letting PLND guide descent...")
-                    vehicle.mode = VehicleMode('LAND')
-            else:
-                vx = x_ang * 2
-                vy = y_ang * 2
-                print(f"Sending correction velocity vx={vx:.2f}, vy={vy:.2f}")
-                send_ned_velocity(-vx, -vy, 0)
+                print("[INFO] Marker centered. Attempting to switch to LAND mode...")
 
+                if vehicle.mode.name != 'LAND':
+                    vehicle.mode = VehicleMode('LAND')
+
+                    # Wait and confirm mode change
+                    start_time = time.time()
+                    while vehicle.mode.name != 'LAND':
+                        print("[DEBUG] Waiting for mode change to LAND...")
+                        time.sleep(0.5)
+                        if time.time() - start_time > 5:
+                            print("[WARNING] LAND mode not accepted within timeout.")
+                            break
+                    else:
+                        print("[SUCCESS] Drone is now in LAND mode.")
         else:
-            print("Marker not found. Hovering...")
+            print("[INFO] Marker not found. Holding position.")
             send_ned_velocity(0, 0, 0)
 
-        time.sleep(0.1)  # 10 Hz update rate
+        time.sleep(0.1)  # 10 Hz loop
 
 # ------------------- RUN TEST -------------------
 
