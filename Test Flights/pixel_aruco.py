@@ -136,7 +136,7 @@ def precision_land_pixel_offset():
                     break
             else:
                 vx = -dy * Kp
-                vy = -dx * Kp
+                vy = dx * Kp
                 print(f"Correcting position: vx={vx:.2f}, vy={vy:.2f}")
                 send_ned_velocity(vx, vy, 0)
 
