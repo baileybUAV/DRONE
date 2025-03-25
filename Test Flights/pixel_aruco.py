@@ -13,7 +13,7 @@ takeoff_altitude = 6
 camera_resolution = (1280, 720)
 marker_id = 0
 marker_size = 0.253  # meters (black square only)
-Kp = 0.004
+Kp = 0.0025
 center_threshold = 20  # pixels
 descent_speed = 0.2  # m/s downward
 final_land_height = 1.0  # meters above target
@@ -106,9 +106,9 @@ def precision_land_pixel_offset():
         img = picam2.capture_array()
         img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
         img = cv2.undistort(img, camera_matrix, camera_distortion)
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        gray = cv2.cvtColor(img, cv2.COLORBGR2GRAY)
 
-        corners, ids, _ = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
+        corners, ids,  = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
 
         if ids is not None and marker_id in ids:
             index = np.where(ids == marker_id)[0][0]
@@ -122,22 +122,26 @@ def precision_land_pixel_offset():
 
             print(f"Offset dx={dx}, dy={dy}")
 
-            if abs(dx) < center_threshold and abs(dy) < center_threshold:
-                altitude = vehicle.rangefinder.distance
-                if altitude is None or altitude <= 0:
-                    altitude = 10.0  # fallback if LiDAR fails
+            # Altitude-aware dynamic gain
+            altitude = vehicle.rangefinder.distance
+            if altitude is None or altitude <= 0:
+                altitude = 10.0  # fallback if LiDAR fails
 
+            # Linearly scale Kp: 0.0015 (low alt) → 0.007 (high alt)
+            Kp_scaled = max(0.0015, min(0.005, 0.001 + 0.001 * altitude))
+
+            if abs(dx) < center_threshold and abs(dy) < center_threshold:
                 if altitude > final_land_height:
-                    print("Centered. Descending...")
+                    print(f"Centered. Descending... (Kp={Kp_scaled:.4f})")
                     send_ned_velocity(0, 0, descent_speed)
                 else:
                     print("Reached final height. Switching to LAND.")
                     vehicle.mode = VehicleMode("LAND")
                     break
             else:
-                vx = -dy * Kp
-                vy = dx * Kp
-                print(f"Correcting position: vx={vx:.2f}, vy={vy:.2f}")
+                vx = dy * Kp_scaled
+                vy = dx * Kp_scaled
+                print(f"Correcting with Kp={Kp_scaled:.4f}, vx={vx:.2f}, vy={vy:.2f}")
                 send_ned_velocity(vx, vy, 0)
 
         else:
