@@ -112,11 +112,11 @@ print("Press any key and ENTER to exit code early")
 manaul_arm()
 print("MAIN:  Manual Arm Success")
 
-takeoff(0.5) # In meters
+takeoff(1) # In meters
 print("MAIN:  TakeOff Completed")
 vehicle.mode = VehicleMode("LOITER")
 print("MAIN:  Loiter Mode")
-time.sleep(5)
+time.sleep(15)
 Land()
 print("MAIN: IF DRONE IS NOT UPSIDE DOWN, CONGRATS!")
 exit()
