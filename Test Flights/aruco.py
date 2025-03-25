@@ -164,7 +164,7 @@ def precision_land():
             measured_distance = vehicle.rangefinder.distance
             if measured_distance is None or measured_distance <= 0:
                 measured_distance = 10.0
-            send_land_message(x_ang, y_ang, measured_distance)
+            send_land_message(x_ang, y_ang)
 
             print(f"[INFO] x_ang={math.degrees(x_ang):.2f}°, y_ang={math.degrees(y_ang):.2f}°")
             print(f"[DEBUG] Current mode: {vehicle.mode.name}")
