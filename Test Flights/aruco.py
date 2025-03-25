@@ -164,7 +164,7 @@ def precision_land():
             if measured_distance is None or measured_distance <= 0:
                 measured_distance = 10.0  # fallback if LiDAR fails
 
-            send_land_message(x_ang, y_ang, measured_distance)
+            send_land_message(x_ang, y_ang)
 
             print(f"DropZone detected at angle x={math.degrees(x_ang):.2f}, y={math.degrees(y_ang):.2f}")
 
