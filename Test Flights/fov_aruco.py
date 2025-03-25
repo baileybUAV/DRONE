@@ -83,7 +83,7 @@ def manual_arm_and_takeoff(target_alt):
     while True:
         current_alt = vehicle.location.global_relative_frame.alt
         print(f"    Altitude: {current_alt:.2f}")
-        if current_alt >= target_alt * 0.80:
+        if current_alt >= target_alt * 0.85:
             print("    Reached target altitude.")
             break
         time.sleep(1)
