@@ -11,7 +11,7 @@ from picamera2 import Picamera2
 # ------------------- CONFIGURATION -------------------
 takeoff_altitude = 6
 camera_resolution = (1280, 720)
-marker_id = 1
+marker_id = 0
 marker_size = 0.253  # meters (black square only)
 Kp = 0.002
 center_threshold = 20  # pixels

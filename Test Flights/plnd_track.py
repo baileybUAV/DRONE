@@ -11,7 +11,7 @@ from picamera2 import Picamera2
 # ------------------- CONFIGURATION -------------------
 takeoff_altitude = 6  # meters
 camera_resolution = (1280, 720)
-marker_id = 1
+marker_id = 0
 marker_size = 0.253  # meters (black square size)
 HFOV = 110 * math.pi / 180  # Horizontal FOV in radians
 VFOV = HFOV * (camera_resolution[1] / camera_resolution[0])  # Vertical FOV
