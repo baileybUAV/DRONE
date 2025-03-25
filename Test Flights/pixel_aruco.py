@@ -106,7 +106,7 @@ def precision_land_pixel_offset():
         img = picam2.capture_array()
         img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
         img = cv2.undistort(img, camera_matrix, camera_distortion)
-        gray = cv2.cvtColor(img, cv2.COLORBGR2GRAY)
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
         corners, ids,  = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
 
