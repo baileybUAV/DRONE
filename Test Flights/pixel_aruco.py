@@ -13,9 +13,9 @@ takeoff_altitude = 6
 camera_resolution = (1280, 720)
 marker_id = 0
 marker_size = 0.253  # meters (black square only)
-Kp = 0.002
+Kp = 0.004
 center_threshold = 20  # pixels
-descent_speed = 0.1  # m/s downward
+descent_speed = 0.2  # m/s downward
 final_land_height = 1.0  # meters above target
 
 # ------------------- CONNECT TO VEHICLE -------------------
