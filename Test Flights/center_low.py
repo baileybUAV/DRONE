@@ -13,14 +13,13 @@ takeoff_altitude = 6
 camera_resolution = (1280, 720)
 marker_id = 0
 marker_size = 0.253  # meters (black square only)
-Kp = 0.0025
 descent_speed = 0.2  # m/s downward
 final_land_height = 1.0  # meters above target
 fast_descent_speed = 0.5
 slow_descent_speed = 0.2
 slow_down_altitude = 3.0
 far_center_threshold = 50  # pixels
-near_center_threshold = 20  # pixels
+near_center_threshold = 15  # pixels
 far_Kp = 0.005
 near_Kp = 0.002
 

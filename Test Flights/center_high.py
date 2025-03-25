@@ -14,7 +14,7 @@ camera_resolution = (1280, 720)
 marker_id = 0
 marker_size = 0.253  # meters (black square only)
 Kp = 0.0025
-center_threshold = 20  # pixels
+center_threshold = 15  # pixels
 descent_speed = 0.2  # m/s downward
 final_land_height = 5  # meters above target
 
@@ -132,8 +132,6 @@ def precision_land_pixel_offset():
                     send_ned_velocity(0, 0, descent_speed)
                 else:
                     print("Reached final height and Centered. Locking Location and Landing...")
-                    aruco_loc = vehicle.location.global_frame
-                    vehicle.simple_goto(aruco_loc)
                     vehicle.mode = VehicleMode("LAND")
                     break
             else:
