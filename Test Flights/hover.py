@@ -75,7 +75,7 @@ def takeoff(aTargetAltitude):
     print ("Altitude: ", vehicle.location.global_relative_frame.alt)
     print ("Lidar: ", vehicle.rangefinder.distance)
     #Break and return from function just below target altitude
-    if vehicle.rangefinder.distance>=aTargetAltitude*0.95:
+    if vehicle.rangefinder.distance>=aTargetAltitude*0.90:
       print ("Reached target altitude")
       
       break
@@ -112,8 +112,10 @@ print("Press any key and ENTER to exit code early")
 manaul_arm()
 print("MAIN:  Manual Arm Success")
 
-takeoff(2) # In meters
+takeoff(0.5) # In meters
 print("MAIN:  TakeOff Completed")
+vehicle.mode = VehicleMode("LOITER")
+print("MAIN:  Loiter Mode")
 time.sleep(5)
 Land()
 print("MAIN: IF DRONE IS NOT UPSIDE DOWN, CONGRATS!")
