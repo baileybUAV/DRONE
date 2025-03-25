@@ -16,7 +16,7 @@ marker_size = 0.253  # meters (black square only)
 Kp = 0.0025
 center_threshold = 20  # pixels
 descent_speed = 0.2  # m/s downward
-final_land_height = 1.0  # meters above target
+final_land_height = 5  # meters above target
 
 # ------------------- CONNECT TO VEHICLE -------------------
 # Connect to the Vehicle function
@@ -73,7 +73,6 @@ def manual_arm_and_takeoff(target_alt):
         time.sleep(1)
 
     print("Vehicle armed. Taking off!")
-    time.sleep(1)
     vehicle.mode = VehicleMode("GUIDED")
     vehicle.simple_takeoff(target_alt)
 
@@ -132,7 +131,9 @@ def precision_land_pixel_offset():
                     print("Centered. Descending...")
                     send_ned_velocity(0, 0, descent_speed)
                 else:
-                    print("Reached final height. Switching to LAND.")
+                    print("Reached final height and Centered. Locking Location and Landing...")
+                    aruco_loc = vehicle.location.global_frame
+                    vehicle.simple_goto(aruco_loc)
                     vehicle.mode = VehicleMode("LAND")
                     break
             else:
