@@ -131,6 +131,10 @@ def send_ned_velocity(velocity_x, velocity_y, velocity_z):
 # ------------------- PRECISION LANDING -------------------
 def precision_land():
     print("Initiating precision landing sequence...")
+
+    HFOV = 110 * math.pi / 180  # Horizontal FOV in radians
+    VFOV = HFOV * (camera_resolution[1] / camera_resolution[0])  # Vertical FOV in radians
+
     while vehicle.armed:
         img = picam2.capture_array()
         img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
@@ -139,7 +143,7 @@ def precision_land():
 
         corners, ids, _ = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
 
-        if ids is not None and marker_id in ids.flatten():
+        if ids is not None and marker_id in ids:
             index = np.where(ids == marker_id)[0][0]
             rvecs, tvecs, _ = aruco.estimatePoseSingleMarkers(corners, marker_size, camera_matrix, camera_distortion)
             tvec = tvecs[index][0]
@@ -149,33 +153,36 @@ def precision_land():
             x_avg = x_sum / 4
             y_avg = y_sum / 4
 
-            x_ang = (x_avg - camera_resolution[0]/2) * ((70 * math.pi / 180) / camera_resolution[0])
-            y_ang = (y_avg - camera_resolution[1]/2) * ((70 * (720 / 1280) * (math.pi / 180)) / camera_resolution[1])
+            dx = x_avg - (camera_resolution[0] / 2)
+            dy = y_avg - (camera_resolution[1] / 2)
+
+            x_ang = dx * (HFOV / camera_resolution[0])
+            y_ang = dy * (VFOV / camera_resolution[1])
+
+            # Get altitude for LANDING_TARGET message
+            measured_distance = vehicle.rangefinder.distance
+            if measured_distance is None or measured_distance <= 0:
+                measured_distance = 10.0  # fallback if LiDAR fails
+
+            send_land_message(x_ang, y_ang, measured_distance)
 
             print(f"DropZone detected at angle x={math.degrees(x_ang):.2f}, y={math.degrees(y_ang):.2f}")
 
-
             if abs(x_ang) < angle_threshold and abs(y_ang) < angle_threshold:
                 if vehicle.mode.name != 'LAND':
+                    print("Centered. Switching to LAND mode and letting PLND guide descent...")
                     vehicle.mode = VehicleMode('LAND')
-                    print("Switching to LAND mode...")
             else:
-                # Apply proportional velocity correction to center
-                vx = x_ang * 0.5  # Tweak gain as needed
-                vy = y_ang * 0.5
+                vx = x_ang * 2
+                vy = y_ang * 2
                 print(f"Sending correction velocity vx={vx:.2f}, vy={vy:.2f}")
-                send_ned_velocity(vy, vx, 0) # vx was -
+                send_ned_velocity(-vx, -vy, 0)
+
         else:
             print("Marker not found. Hovering...")
-            send_land_message(0, 0)
+            send_ned_velocity(0, 0, 0)
 
-        time.sleep(1 / update_freq)
-
-
-
-
-
-
+        time.sleep(0.1)  # 10 Hz update rate
 
 # ------------------- RUN TEST -------------------
 
