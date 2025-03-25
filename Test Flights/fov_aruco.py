@@ -139,7 +139,7 @@ def precision_land():
 
         corners, ids, _ = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
 
-        if ids is not None and marker_id in ids:
+        if ids is not None and marker_id in ids.flatten():
             index = np.where(ids == marker_id)[0][0]
             rvecs, tvecs, _ = aruco.estimatePoseSingleMarkers(corners, marker_size, camera_matrix, camera_distortion)
             tvec = tvecs[index][0]
@@ -161,10 +161,10 @@ def precision_land():
                     print("Switching to LAND mode...")
             else:
                 # Apply proportional velocity correction to center
-                vx = x_ang * 1  # Tweak gain as needed
-                vy = y_ang * 1
+                vx = x_ang * 0.5  # Tweak gain as needed
+                vy = y_ang * 0.5
                 print(f"Sending correction velocity vx={vx:.2f}, vy={vy:.2f}")
-                send_ned_velocity(-vx, -vy, 0)
+                send_ned_velocity(vy, -vx, 0)
         else:
             print("Marker not found. Hovering...")
             send_land_message(0, 0)
