@@ -22,8 +22,8 @@ slow_descent_speed = 0.15
 slow_down_altitude = 3.0
 far_center_threshold = 50
 near_center_threshold = 15
-far_Kp = 0.004
-near_Kp = 0.002
+far_Kp = 0.003
+near_Kp = 0.0015
 marker_found_flag = threading.Event()
 
 # ------------------- CONNECT -------------------
@@ -132,6 +132,7 @@ def send_ned_velocity(vx, vy, vz):
 
 def precision_land_pixel_offset():
     print("Beginning precision landing...")
+    send_ned_velocity(-1, 0, 0)
     while vehicle.armed:
         img = picam2.capture_array()
         img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
@@ -167,7 +168,7 @@ def precision_land_pixel_offset():
                 vehicle.mode = VehicleMode("LAND")
                 break
         else:
-            send_ned_velocity(-1, 0, 0)
+            send_ned_velocity(0, 0, 0)
         time.sleep(0.1)
 
 # ------------------- MAIN MISSION -------------------
