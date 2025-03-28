@@ -126,6 +126,7 @@ def send_ned_velocity(vx, vy, vz):
 
 def precision_land_pixel_offset():
     print("Beginning precision landing...")
+    
 
     while vehicle.armed:
         img = picam2.capture_array()
@@ -136,6 +137,9 @@ def precision_land_pixel_offset():
         corners, ids, _ = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
 
         if ids is not None and marker_id in ids:
+            print("Drop Zone Detected!")
+            marker_found_event.set()  # Set the event when the marker is detected
+
             index = np.where(ids == marker_id)[0][0]
             c = corners[index][0]
             cx = int(np.mean(c[:, 0]))
@@ -214,13 +218,13 @@ telem_link = setup_telem_connection()
 print("Telemetry link established!")
 print("Starting Test Flight...")
 
-marker_thread = threading.Thread(target=precision_land_pixel_offset, daemon=True)
-marker_thread.start()
+
 
 manual_arm()
 takeoff(takeoff_height)
 
-
+marker_thread = threading.Thread(target=precision_land_pixel_offset, daemon=True)
+marker_thread.start()
 
 # Waypoints List (add coordinates here)
 waypoints = [
