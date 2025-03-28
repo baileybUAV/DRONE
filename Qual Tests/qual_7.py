@@ -179,9 +179,6 @@ def precision_land_pixel_offset():
                 vehicle.mode = VehicleMode("LAND")
                 break
 
-        else:
-            print("Marker not detected. Continueing.")
-            break
 
         time.sleep(0.1)  # 10 Hz
 
