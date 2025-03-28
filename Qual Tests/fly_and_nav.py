@@ -228,7 +228,11 @@ marker_thread.start()
 
 # Waypoints List (add coordinates here)
 waypoints = [
-    LocationGlobalRelative(27.9867939, -82.3009524, 6)
+    LocationGlobalRelative(27.9868129,-82.3016216, 6),
+    LocationGlobalRelative(27.9868271,-82.3012877, 6),
+    LocationGlobalRelative(27.9867146,-82.3012809, 6),
+    LocationGlobalRelative(27.9867122,-82.3016216, 6),
+    LocationGlobalRelative(27.9867773,-82.3014553, 6)
 ]
 
 
