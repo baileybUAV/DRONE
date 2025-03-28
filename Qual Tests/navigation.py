@@ -62,8 +62,11 @@ def manual_arm_and_takeoff(target_alt):
 
     print("Armed. Taking off...")
     vehicle.mode = VehicleMode("GUIDED")
-    vehicle.simple_takeoff(target_alt)
+    while vehicle.mode.name != "GUIDED":
+        print(f"Waiting for GUIDED mode... (Current: {vehicle.mode.name})")
+        time.sleep(1)
 
+    vehicle.simple_takeoff(target_alt)
     while True:
         current_alt = vehicle.location.global_relative_frame.alt
         print(f"Altitude: {current_alt:.2f}m")
@@ -159,22 +162,37 @@ def fly_through_waypoints(waypoints):
     for i, waypoint in enumerate(waypoints):
         print(f"Navigating to waypoint {i+1}...")
         vehicle.simple_goto(waypoint)
+        start_time = time.time()
 
         while True:
             if precision_landing_event.is_set():
+                print("Landing event triggered — stopping waypoint nav")
                 return
 
             current_location = vehicle.location.global_relative_frame
             distance = distance_to(waypoint, current_location)
+            print(f"Distance to waypoint {i+1}: {distance:.2f}m")
 
             if distance < 0.5:
                 print(f"Reached waypoint {i+1}")
                 break
 
-            time.sleep(0.5)
+            if time.time() - start_time > 30:
+                print(f"Timeout: Skipping waypoint {i+1}")
+                break
+
+            time.sleep(1)
 
 # ------------------- MISSION -------------------
 manual_arm_and_takeoff(takeoff_altitude)
+time.sleep(2)
+
+# Ensure GUIDED mode
+print("Setting GUIDED mode before waypoint nav...")
+vehicle.mode = VehicleMode("GUIDED")
+while vehicle.mode.name != "GUIDED":
+    print(f"Waiting for GUIDED mode... (Current: {vehicle.mode.name})")
+    time.sleep(1)
 
 waypoints = [
     LocationGlobalRelative(27.9873411, -82.3012447, 6),
