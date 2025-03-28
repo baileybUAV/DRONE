@@ -11,7 +11,7 @@ from picamera2 import Picamera2
 import argparse
 
 # ------------------- CONFIG -------------------
-takeoff_altitude = 6
+takeoff_altitude = 6  # meters
 camera_resolution = (1280, 720)
 marker_id = 0
 marker_size = 0.253  # meters
