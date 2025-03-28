@@ -98,7 +98,7 @@ def send_ned_velocity(vx, vy, vz):
     vehicle.send_mavlink(msg)
     vehicle.flush()
 
-# ------------------- ARUCO + WAYPOINT + LANDING -------------------
+# ------------------- ARUCO DETECTION -------------------
 def detect_marker():
     img = picam2.capture_array()
     img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
@@ -172,14 +172,13 @@ for i, wp in enumerate(waypoints):
         dist = distance_to(wp, current_location)
         print(f"[Waypoint {i+1}] Distance: {dist:.2f}m")
 
-        # Refresh simple_goto command every 5s
         if time.time() - last_cmd_time > 5:
             vehicle.simple_goto(wp)
             last_cmd_time = time.time()
 
-        # Check for ArUco marker
-        if detect_marker() is not None:
-            print("Marker found! Breaking waypoint loop.")
+        marker = detect_marker()
+        if marker is not None:
+            print("Marker found! Initiating precision landing.")
             vehicle.mode = VehicleMode("GUIDED")
             time.sleep(1)
             precision_land()
@@ -190,7 +189,10 @@ for i, wp in enumerate(waypoints):
             break
         time.sleep(1)
 
-print("Mission complete. Landing.")
+    if vehicle.mode.name == "LAND":
+        break
+
+print("Mission complete or interrupted. Landing.")
 vehicle.mode = VehicleMode("LAND")
 while vehicle.armed:
     time.sleep(1)
