@@ -17,12 +17,12 @@ marker_id = 0
 marker_size = 0.253  # meters
 descent_speed = 0.2
 final_land_height = 1.0
-fast_descent_speed = 0.35
-slow_descent_speed = 0.15
+fast_descent_speed = 0.30
+slow_descent_speed = 0.12
 slow_down_altitude = 3.0
 far_center_threshold = 50
 near_center_threshold = 15
-far_Kp = 0.003
+far_Kp = 0.0025
 near_Kp = 0.0015
 marker_found_flag = threading.Event()
 
@@ -133,6 +133,7 @@ def send_ned_velocity(vx, vy, vz):
 def precision_land_pixel_offset():
     print("Beginning precision landing...")
     send_ned_velocity(-1, 0, 0)
+    time.sleep(1)
     while vehicle.armed:
         img = picam2.capture_array()
         img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
