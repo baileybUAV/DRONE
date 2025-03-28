@@ -208,9 +208,6 @@ def goto_waypoint(waypoint, number):
 manual_arm()
 takeoff(takeoff_altitude)
 
-# Start ArUco detection thread
-landing_thread = threading.Thread(target=precision_landing_loop, daemon=True)
-landing_thread.start()
 
 waypoints = [
     LocationGlobalRelative(27.9873411, -82.3012447, takeoff_altitude),
