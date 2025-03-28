@@ -155,8 +155,10 @@ print("MAIN: Manual Arm Success")
 takeoff(4)  # Takeoff to 4 meters
 print("MAIN: TakeOff Completed")
 
-send_ned_position(45, 0, 0)
-time.sleep(30) 
+start_time = time.time()
+while time.time() - start_time < 30:
+  send_ned_velocity(2, 0, 0)
+  time.sleep(1) 
 
 land()
 
