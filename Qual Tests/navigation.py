@@ -93,6 +93,21 @@ def send_ned_velocity(vx, vy, vz):
     vehicle.send_mavlink(msg)
     vehicle.flush()
 
+def send_goto_command(location):
+    msg = vehicle.message_factory.set_position_target_global_int_encode(
+        0, 0, 0,
+        mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT_INT,
+        0b0000111111111000,
+        int(location.lat * 1e7),
+        int(location.lon * 1e7),
+        location.alt,
+        0, 0, 0,
+        0, 0, 0,
+        0, 0
+    )
+    vehicle.send_mavlink(msg)
+    vehicle.flush()
+
 def marker_detection_loop():
     while vehicle.armed and not precision_landing_event.is_set():
         img = picam2.capture_array()
@@ -161,7 +176,7 @@ def precision_land():
 def fly_through_waypoints(waypoints):
     for i, waypoint in enumerate(waypoints):
         print(f"Navigating to waypoint {i+1}...")
-        vehicle.simple_goto(waypoint)
+        send_goto_command(waypoint)
         start_time = time.time()
 
         while True:
@@ -216,3 +231,4 @@ if precision_landing_event.is_set():
 print("Mission complete. Cleaning up.")
 vehicle.close()
 picam2.stop()
+picam2.close()
