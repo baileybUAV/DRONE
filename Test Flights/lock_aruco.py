@@ -9,19 +9,19 @@ import argparse
 from picamera2 import Picamera2
 
 # ------------------- CONFIGURATION -------------------
-takeoff_altitude = 6
+takeoff_altitude = 6  # meters
 camera_resolution = (1280, 720)
 marker_id = 0
-marker_size = 0.253  # meters (black square only)
-descent_speed = 0.2  # m/s downward
-final_land_height = 1.0  # meters above target
-fast_descent_speed = 0.35
-slow_descent_speed = 0.15
+marker_size = 0.253  # meters
+descent_speed = 0.2
+final_land_height = 1.0
+fast_descent_speed = 0.30
+slow_descent_speed = 0.12
 slow_down_altitude = 3.0
-far_center_threshold = 50  # pixels
-near_center_threshold = 15  # pixels
-far_Kp = 0.004
-near_Kp = 0.002
+far_center_threshold = 50
+near_center_threshold = 15
+far_Kp = 0.0025
+near_Kp = 0.0015
 
 # ------------------- CONNECT TO VEHICLE -------------------
 # Connect to the Vehicle function
@@ -202,8 +202,8 @@ def precision_land_pixel_offset():
                     time.sleep(2)
 
                 # Land the drone
-                print("1 minute passed. Initiating landing sequence...")
-                vehicle.mode = VehicleMode("LAND")
+                print("1 minute passed. Returning Home...")
+                vehicle.mode = VehicleMode("RTL")
                 break
 
         else:

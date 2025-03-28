@@ -203,3 +203,5 @@ else:
 picam2.stop()
 vehicle.close()
 print("Mission completed.")
+exit()
+# ------------------- END OF SCRIPT -------------------
