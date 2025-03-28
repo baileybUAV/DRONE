@@ -77,6 +77,27 @@ def takeoff(aTargetAltitude):
       break
     time.sleep(1)
 
+def send_ned_position(pos_x, pos_y, pos_z):
+    """
+    Command the drone to move to a specific position offset (relative to its current position)
+    in the BODY_NED frame.
+    pos_x: forward/backward (North)
+    pos_y: right/left (East)
+    pos_z: down/up (Down, positive down)
+    """
+    print(f"Setting NED position offset: x={pos_x}, y={pos_y}, z={pos_z}")
+    msg = vehicle.message_factory.set_position_target_local_ned_encode(
+        0,  # time_boot_ms
+        0, 0,  # target system, target component
+        mavutil.mavlink.MAV_FRAME_BODY_NED,  # body frame
+        0b110111111000,  # type_mask to use position only (bitmask)
+        pos_x, pos_y, pos_z,  # position in meters
+        0, 0, 0,  # velocity (disabled)
+        0, 0, 0,  # acceleration (disabled)
+        0, 0)  # yaw, yaw_rate (disabled)
+    vehicle.send_mavlink(msg)
+    vehicle.flush()
+
 
 def send_ned_velocity(vx, vy, vz):
     msg = vehicle.message_factory.set_position_target_local_ned_encode(
@@ -134,8 +155,8 @@ print("MAIN: Manual Arm Success")
 takeoff(4)  # Takeoff to 4 meters
 print("MAIN: TakeOff Completed")
 
-send_ned_velocity(2, 0, 0)
-time.sleep(23) 
+send_ned_position(45, 0, 0)
+time.sleep(5) 
 
 land()
 
