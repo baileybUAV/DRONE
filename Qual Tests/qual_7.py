@@ -184,9 +184,6 @@ def precision_land_pixel_offset():
                 print("Final height reached. Switching to LAND.")
                 vehicle.mode = VehicleMode("LAND")
                 break
-        else:
-            print("Marker lost. Hovering.")
-            send_ned_velocity(0, 0, 0)
         time.sleep(0.1)
 
 # ------------------- WAYPOINT NAVIGATION -------------------
