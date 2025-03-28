@@ -220,9 +220,16 @@ waypoints = [
     LocationGlobalRelative(27.9873411, -82.3012447, takeoff_altitude)
 ]
 
-for i, wp in enumerate(waypoints):
-    if not goto_waypoint(wp, i + 1):
-        break  # exit if marker was detected mid-mission
+# Go to first waypoint before searching for marker
+if goto_waypoint(waypoints[0], 1):
+    # Start ArUco thread only after drone is moving and stable
+    landing_thread = threading.Thread(target=precision_landing_loop, daemon=True)
+    landing_thread.start()
+
+    # Proceed with remaining waypoints
+    for i, wp in enumerate(waypoints[1:], start=2):
+        if not goto_waypoint(wp, i):
+            break
 
 print("Mission complete or interrupted. Landing.")
 vehicle.mode = VehicleMode("LAND")
