@@ -77,6 +77,20 @@ def takeoff(aTargetAltitude):
       break
     time.sleep(1)
 
+
+def send_ned_velocity(vx, vy, vz):
+    msg = vehicle.message_factory.set_position_target_local_ned_encode(
+        0, 0, 0,
+        mavutil.mavlink.MAV_FRAME_BODY_NED,
+        0b0000111111000111,  # velocity only
+        0, 0, 0,
+        vx, vy, vz,
+        0, 0, 0,
+        0, 0
+    )
+    vehicle.send_mavlink(msg)
+    vehicle.flush()
+
 # Function to calculate distance between two GPS coordinates
 def distance_to(target_location, current_location):
     dlat = target_location.lat - current_location.lat
@@ -120,18 +134,11 @@ print("MAIN: Manual Arm Success")
 takeoff(4)  # Takeoff to 4 meters
 print("MAIN: TakeOff Completed")
 
-print("Setting airspeed to 5 mph")
-vehicle.airspeed = 2.2 #m/s
+send_ned_velocity(1, 0, 0)
+time.sleep(2)  # Move forward for 5 seconds
 
-# Waypoints List
-waypoints = [
-    LocationGlobalRelative(27.9866471,-82.3015398, 6),  # outside geo fence
-    LocationGlobalRelative(27.9867122,-82.3016216, 6)
-]
-
-# Move through waypoints without waiting
-for i, waypoint in enumerate(waypoints):
-    goto_waypoint(waypoint, i + 1)
+send_ned_velocity(0, 1, 0)
+time.sleep(2)  # Move forward for 5 seconds
 
 land()
 
