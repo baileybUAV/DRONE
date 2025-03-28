@@ -156,7 +156,7 @@ takeoff(4)  # Takeoff to 4 meters
 print("MAIN: TakeOff Completed")
 
 send_ned_position(45, 0, 0)
-time.sleep(5) 
+time.sleep(30) 
 
 land()
 
