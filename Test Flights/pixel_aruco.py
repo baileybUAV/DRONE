@@ -128,7 +128,7 @@ def precision_land_pixel_offset():
                     altitude = 10.0  # fallback if LiDAR fails
                 
                 if altitude > final_land_height:
-                    print("Centered. Descending...")
+                    print("Centered. Descending...")                  
                     send_ned_velocity(0, 0, descent_speed)
                 else:
                     print("Reached final height. Switching to LAND.")
