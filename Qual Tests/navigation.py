@@ -5,6 +5,7 @@ import cv2.aruco as aruco
 import numpy as np
 import math
 import time
+import threading
 from picamera2 import Picamera2
 
 # ------------------- CONFIGURATION -------------------
@@ -20,6 +21,9 @@ far_center_threshold = 50
 near_center_threshold = 15
 far_Kp = 0.004
 near_Kp = 0.002
+
+# Shared flag for precision landing trigger
+precision_landing_event = threading.Event()
 
 # ------------------- CONNECT TO VEHICLE -------------------
 def connectMyCopter():
@@ -86,68 +90,88 @@ def send_ned_velocity(vx, vy, vz):
     vehicle.send_mavlink(msg)
     vehicle.flush()
 
-def attempt_marker_land():
-    img = picam2.capture_array()
-    img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-    img = cv2.undistort(img, camera_matrix, camera_distortion)
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+def marker_detection_loop():
+    while vehicle.armed and not precision_landing_event.is_set():
+        img = picam2.capture_array()
+        img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+        img = cv2.undistort(img, camera_matrix, camera_distortion)
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-    corners, ids, _ = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
+        corners, ids, _ = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
 
-    if ids is not None and marker_id in ids:
-        index = np.where(ids == marker_id)[0][0]
-        c = corners[index][0]
-        cx = int(np.mean(c[:, 0]))
-        cy = int(np.mean(c[:, 1]))
+        if ids is not None and marker_id in ids:
+            print("Marker detected!")
+            precision_landing_event.set()
 
-        frame_center = (camera_resolution[0] // 2, camera_resolution[1] // 2)
-        dx = cx - frame_center[0]
-        dy = cy - frame_center[1]
+        time.sleep(0.1)
 
-        altitude = vehicle.rangefinder.distance or 10.0
+def precision_land():
+    print("Beginning precision landing...")
+    while vehicle.armed:
+        img = picam2.capture_array()
+        img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+        img = cv2.undistort(img, camera_matrix, camera_distortion)
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-        if altitude > slow_down_altitude:
-            descent_vz = fast_descent_speed
-            center_threshold = far_center_threshold
-            Kp = far_Kp
-        else:
-            descent_vz = slow_descent_speed
-            center_threshold = near_center_threshold
-            Kp = near_Kp
+        corners, ids, _ = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
 
-        if altitude > final_land_height:
-            if abs(dx) < center_threshold and abs(dy) < center_threshold:
-                print("Marker centered. Descending...")
-                send_ned_velocity(0, 0, descent_vz)
+        if ids is not None and marker_id in ids:
+            index = np.where(ids == marker_id)[0][0]
+            c = corners[index][0]
+            cx = int(np.mean(c[:, 0]))
+            cy = int(np.mean(c[:, 1]))
+
+            frame_center = (camera_resolution[0] // 2, camera_resolution[1] // 2)
+            dx = cx - frame_center[0]
+            dy = cy - frame_center[1]
+
+            altitude = vehicle.rangefinder.distance or 10.0
+
+            if altitude > slow_down_altitude:
+                descent_vz = fast_descent_speed
+                center_threshold = far_center_threshold
+                Kp = far_Kp
             else:
-                vx = -dy * Kp
-                vy = dx * Kp
-                print(f"Adjusting position: vx={vx:.2f}, vy={vy:.2f}, vz={descent_vz}")
-                send_ned_velocity(vx, vy, descent_vz)
-        else:
-            print("Final landing height reached. Initiating LAND mode.")
-            vehicle.mode = VehicleMode("LAND")
-        return True
-    return False
+                descent_vz = slow_descent_speed
+                center_threshold = near_center_threshold
+                Kp = near_Kp
 
-def fly_and_search(waypoints):
+            if altitude > final_land_height:
+                if abs(dx) < center_threshold and abs(dy) < center_threshold:
+                    print("Marker centered. Descending...")
+                    send_ned_velocity(0, 0, descent_vz)
+                else:
+                    vx = -dy * Kp
+                    vy = dx * Kp
+                    print(f"Adjusting: vx={vx:.2f}, vy={vy:.2f}, vz={descent_vz}")
+                    send_ned_velocity(vx, vy, descent_vz)
+            else:
+                print("Final landing height reached. LAND mode activated.")
+                vehicle.mode = VehicleMode("LAND")
+                break
+        else:
+            print("Marker lost during landing. Hovering.")
+            send_ned_velocity(0, 0, 0)
+
+        time.sleep(0.1)
+
+def fly_through_waypoints(waypoints):
     for i, waypoint in enumerate(waypoints):
-        print(f"Heading to waypoint {i+1}...")
+        print(f"Navigating to waypoint {i+1}...")
         vehicle.simple_goto(waypoint)
 
         while True:
+            if precision_landing_event.is_set():
+                return
+
             current_location = vehicle.location.global_relative_frame
             distance = distance_to(waypoint, current_location)
-
-            if attempt_marker_land():
-                print("Marker detected during flight. Starting precision landing.")
-                return
 
             if distance < 0.5:
                 print(f"Reached waypoint {i+1}")
                 break
 
-            time.sleep(0.1)
+            time.sleep(0.5)
 
 # ------------------- MISSION -------------------
 manual_arm_and_takeoff(takeoff_altitude)
@@ -160,7 +184,16 @@ waypoints = [
     LocationGlobalRelative(27.9873411, -82.3012447, 6)
 ]
 
-fly_and_search(waypoints)
+# Start detection thread
+detection_thread = threading.Thread(target=marker_detection_loop, daemon=True)
+detection_thread.start()
+
+# Navigate
+fly_through_waypoints(waypoints)
+
+# If triggered, precision land
+if precision_landing_event.is_set():
+    precision_land()
 
 print("Mission complete. Cleaning up.")
 vehicle.close()
