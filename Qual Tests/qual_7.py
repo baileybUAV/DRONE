@@ -1,3 +1,4 @@
+import threading
 from dronekit import connect, VehicleMode, LocationGlobalRelative
 from pymavlink import mavutil
 from geopy.distance import distance as geopy_distance
@@ -10,11 +11,11 @@ import argparse
 from picamera2 import Picamera2
 
 # ------------------- CONFIGURATION -------------------
-takeoff_altitude = 4
+takeoff_altitude = 6
 marker_id = 0
 camera_resolution = (1280, 720)
 marker_size = 0.253  # meters
-final_land_height = 1.0  # meters above target
+final_land_height = 1
 fast_descent_speed = 0.35
 slow_descent_speed = 0.15
 slow_down_altitude = 3.0
@@ -23,18 +24,33 @@ near_center_threshold = 15
 far_Kp = 0.004
 near_Kp = 0.002
 
-# ------------------- CONNECT TO VEHICLE -------------------
+marker_detected = threading.Event()
+
+# FUNCTIONS
+# Connect to the Vehicle function
 def connectMyCopter():
-    print("Connecting to drone...")
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--connect')
-    args = parser.parse_args()
-    vehicle = connect("/dev/ttyAMA0", baud=57600)
-    print("Connected.")
-    return vehicle
+  print("Start Pi Connection")
+  parser = argparse.ArgumentParser(description='commands')
+  parser.add_argument('--connect')
+  args = parser.parse_args()
+
+  connection_string = "/dev/ttyAMA0"
+  baud_rate = 57600
+
+  print("Connecting Pi to Drone...")
+  vehicle = connect(connection_string,baud=baud_rate) 
+  print("GPS: %s" % vehicle.gps_0)
+  print("Battery: %s" % vehicle.battery)
+  print("Armable?: %s" % vehicle.is_armable)
+  print("Rangefinder distance: %s" % vehicle.rangefinder.distance)
+  print("Global Location: %s" % vehicle.location.global_frame)
+  print("Global Location (relative altitude): %s" % vehicle.location.global_relative_frame)
+  print("Local Location: %s" % vehicle.location.local_frame)
+  print("Mode: %s" % vehicle.mode.name)     
+  return vehicle
 
 vehicle = connectMyCopter()
-print("Vehicle status checked.")
+print("Pi Connected")
 
 # ------------------- CAMERA SETUP -------------------
 picam2 = Picamera2()
@@ -50,18 +66,23 @@ camera_distortion = np.loadtxt(calib_path + 'cameraDistortion.txt', delimiter=',
 aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_6X6_250)
 parameters = aruco.DetectorParameters()
 
-# ------------------- FLIGHT CONTROL FUNCTIONS -------------------
+# ------------------- FLIGHT CONTROL -------------------
 def manual_arm():
     print("Waiting for vehicle to initialize...")
     while not vehicle.is_armable:
         time.sleep(1)
 
-    print("Waiting for arming...")
-    while not vehicle.armed:
+    vehicle.mode = VehicleMode("GUIDED")
+    while vehicle.mode.name != "GUIDED":
+        print("Waiting for GUIDED mode...")
         time.sleep(1)
 
-    vehicle.mode = VehicleMode("GUIDED")
-    print("Vehicle armed.")
+    vehicle.armed = True
+    while not vehicle.armed:
+        print("Waiting for arming...")
+        time.sleep(1)
+
+    print("Vehicle armed and in GUIDED mode.")
 
 def takeoff(target_altitude):
     print("Taking off...")
@@ -83,7 +104,7 @@ def send_ned_velocity(vx, vy, vz):
     msg = vehicle.message_factory.set_position_target_local_ned_encode(
         0, 0, 0,
         mavutil.mavlink.MAV_FRAME_BODY_NED,
-        0b0000111111000111,  # velocity only
+        0b0000111111000111,
         0, 0, 0,
         vx, vy, vz,
         0, 0, 0,
@@ -93,8 +114,30 @@ def send_ned_velocity(vx, vy, vz):
     vehicle.flush()
 
 # ------------------- PRECISION LANDING -------------------
+
+def precision_landing_loop():
+    print("Precision landing detection thread started.")
+    while vehicle.armed and not marker_detected.is_set():
+        img = picam2.capture_array()
+        img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+        img = cv2.undistort(img, camera_matrix, camera_distortion)
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+        corners, ids, _ = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
+
+        if ids is not None and marker_id in ids:
+            print("Target marker detected! Interrupting mission.")
+            marker_detected.set()
+            vehicle.mode = VehicleMode("GUIDED")
+            time.sleep(1)  # ensure mode change
+            precision_land_pixel_offset()
+            break
+
+        time.sleep(0.2)
+
+
 def precision_land_pixel_offset():
-    print("Precision landing initiated.")
+    print("Beginning precision descent...")
     while vehicle.armed:
         img = picam2.capture_array()
         img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
@@ -102,10 +145,6 @@ def precision_land_pixel_offset():
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
         corners, ids, _ = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
-        if ids is not None:
-            print(f"[DEBUG] Detected IDs: {ids.flatten()}")
-        else:
-            print("[DEBUG] No markers detected.")
 
         if ids is not None and marker_id in ids:
             index = np.where(ids == marker_id)[0][0]
@@ -119,7 +158,7 @@ def precision_land_pixel_offset():
 
             altitude = vehicle.rangefinder.distance
             if altitude is None or altitude <= 0:
-                altitude = 10.0  # fallback
+                altitude = 10.0
 
             if altitude > slow_down_altitude:
                 descent_vz = fast_descent_speed
@@ -142,43 +181,39 @@ def precision_land_pixel_offset():
                     print(f"Correcting: vx={vx:.2f}, vy={vy:.2f}, vz={descent_vz}")
                     send_ned_velocity(vx, vy, descent_vz)
             else:
-                print("Final height reached. Landing.")
+                print("Final height reached. Switching to LAND.")
                 vehicle.mode = VehicleMode("LAND")
                 break
         else:
+            print("Marker lost. Hovering.")
             send_ned_velocity(0, 0, 0)
         time.sleep(0.1)
 
-# ------------------- WAYPOINT LOGIC -------------------
+# ------------------- WAYPOINT NAVIGATION -------------------
 def goto_waypoint(waypoint, number):
-    print(f"Heading to waypoint {number}...")
+    print(f"Going to waypoint {number}...")
     vehicle.simple_goto(waypoint)
     while True:
-        img = picam2.capture_array()
-        img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-        img = cv2.undistort(img, camera_matrix, camera_distortion)
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
-        corners, ids, _ = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
-
-        if ids is not None:
-            print(f"[WAYPOINT DEBUG] Marker(s) seen: {ids.flatten()}")
-        if ids is not None and marker_id in ids:
-            print("Marker detected mid-mission. Switching to precision landing.")
-            precision_land_pixel_offset()
+        if marker_detected.is_set():
+            print(f"Waypoint {number} interrupted: Marker detected.")
             return False
 
         current_location = vehicle.location.global_relative_frame
         dist = distance_to(waypoint, current_location)
+        print(f"[Waypoint {number}] Distance: {dist:.2f} m")
+
         if dist < 0.5:
             print(f"Reached waypoint {number}.")
             return True
+        time.sleep(1)
 
-        time.sleep(0.5)
-
-# ------------------- MISSION EXECUTION -------------------
+# ------------------- MISSION -------------------
 manual_arm()
 takeoff(takeoff_altitude)
+
+# Start ArUco detection thread
+landing_thread = threading.Thread(target=precision_landing_loop, daemon=True)
+landing_thread.start()
 
 waypoints = [
     LocationGlobalRelative(27.9873411, -82.3012447, takeoff_altitude),
@@ -189,15 +224,13 @@ waypoints = [
 ]
 
 for i, wp in enumerate(waypoints):
-    success = goto_waypoint(wp, i + 1)
-    if not success:
-        break
+    if not goto_waypoint(wp, i + 1):
+        break  # exit if marker was detected mid-mission
 
-print("Landing after waypoints or successful detection.")
+print("Mission complete or interrupted. Landing.")
 vehicle.mode = VehicleMode("LAND")
 while vehicle.armed:
     time.sleep(1)
 
 picam2.stop()
 vehicle.close()
-print("Mission complete.")
