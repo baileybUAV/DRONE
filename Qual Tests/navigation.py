@@ -167,7 +167,7 @@ def precision_land_pixel_offset():
                 vehicle.mode = VehicleMode("LAND")
                 break
         else:
-            send_ned_velocity(0, 0, 0)
+            send_ned_velocity(-1, 0, 0)
         time.sleep(0.1)
 
 # ------------------- MAIN MISSION -------------------
