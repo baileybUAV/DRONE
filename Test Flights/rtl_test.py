@@ -106,7 +106,6 @@ def Land():
 
 
 print("MAIN:  Code Started")
-print("Press any key and ENTER to exit code early")
 
 
 manaul_arm()
@@ -117,4 +116,5 @@ print("MAIN:  TakeOff Completed")
 vehicle.mode = VehicleMode("RTL")
 print("MAIN:  RTL Mode")
 print("MAIN: IF DRONE IS NOT UPSIDE DOWN, CONGRATS!")
+vehicle.close()
 exit()
