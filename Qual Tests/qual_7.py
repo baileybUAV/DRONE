@@ -181,7 +181,7 @@ def precision_land_pixel_offset():
 
         else:
             print("Marker not detected. Hovering.")
-            send_ned_velocity(0, 0, 0)
+            break
 
         time.sleep(0.1)  # 10 Hz
 
