@@ -1,4 +1,4 @@
-from dronekit import connect, VehicleMode, LocationGlobalRelative
+from dronekit import connect, VehicleMode, LocationGlobalRelative, APIException
 from pymavlink import mavutil
 import cv2
 import cv2.aruco as aruco
@@ -89,6 +89,7 @@ def manual_arm_and_takeoff(target_alt):
             break
         time.sleep(1)
 
+
 # Function to calculate distance between two GPS coordinates
 def distance_to(target_location, current_location):
     dlat = target_location.lat - current_location.lat
@@ -136,6 +137,18 @@ def precision_land_pixel_offset():
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
         corners, ids, _ = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
+        # Waypoints List
+        waypoints = [
+            LocationGlobalRelative(27.9873411, -82.3012447, 4),
+            LocationGlobalRelative(27.9871291, -82.3012541, 4),
+            LocationGlobalRelative(27.9871243, -82.3016618, 4),
+            LocationGlobalRelative(27.9873340, -82.3016605, 4),
+            LocationGlobalRelative(27.9873411, -82.3012447, 4)  # Returning to first waypoint
+        ]
+
+        # Move through waypoints without waiting
+        for i, waypoint in enumerate(waypoints):
+            goto_waypoint(waypoint, i + 1)
 
         if ids is not None and marker_id in ids:
             index = np.where(ids == marker_id)[0][0]
@@ -178,27 +191,15 @@ def precision_land_pixel_offset():
                 break
 
         else:
-            print("Marker not detected. Performing flight Path...")
-            waypoints = [
-              LocationGlobalRelative(27.9873411, -82.3012447, takeoff_altitude),
-              LocationGlobalRelative(27.9871291, -82.3012541, takeoff_altitude),
-              LocationGlobalRelative(27.9871243, -82.3016618, takeoff_altitude),
-              LocationGlobalRelative(27.9873340, -82.3016605, takeoff_altitude),
-              LocationGlobalRelative(27.9873411, -82.3012447, takeoff_altitude)
-        ]
-
-            # Move through waypoints without waiting
-            for i, waypoint in enumerate(waypoints):
-                goto_waypoint(waypoint, i + 1)
-                break
-            break
+            print("Marker not detected. Hovering.")
+            send_ned_velocity(0, 0, 0)
 
         time.sleep(0.1)  # 10 Hz
 
 # ------------------- FLIGHT EXECUTION -------------------
 print("Starting Test Flight...")
 manual_arm_and_takeoff(takeoff_altitude)
-time.sleep(1)
+time.sleep(2)
 precision_land_pixel_offset()
 print("Landing complete.")
 
