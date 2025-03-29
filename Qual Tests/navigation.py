@@ -23,7 +23,7 @@ slow_down_altitude = 3.0
 far_center_threshold = 50
 near_center_threshold = 15
 far_Kp = 0.0025
-near_Kp = 0.0015
+near_Kp = 0.001
 marker_found_flag = threading.Event()
 
 # ------------------- CONNECT -------------------
