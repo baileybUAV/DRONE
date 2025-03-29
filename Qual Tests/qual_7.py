@@ -202,7 +202,7 @@ def precision_land_pixel_offset():
                         print("Error: No valid GPS data available")
                     else:
                         covariance_matrix = np.full((36,), float('nan'), dtype=np.float32)
-                        file.write("Location Found:" str(lat)"/n"str(lon))
+                        file.write("Location Found:" + str(lat) + "/n" + str(lon))
                         msg = telem_link.mav.global_position_int_cov_encode(
                             int(time.time() * 1e6),
                             mavutil.mavlink.MAV_ESTIMATOR_TYPE_GPS,
@@ -231,7 +231,7 @@ def precision_land_pixel_offset():
 # ------------------- MAIN MISSION -------------------
 print("Starting mission...")
 #LOG START TIME
-file.write("Start Time:" str(time.strftime("%Y-%m-%d %H:%M:%S")))
+file.write("Start Time:" + str(time.strftime("%Y-%m-%d %H:%M:%S")))
 print("Start Time:", time.strftime("%Y-%m-%d %H:%M:%S"))  # Local time
 manual_arm()
 takeoff(takeoff_altitude)
@@ -262,8 +262,8 @@ else:
 picam2.stop()
 vehicle.close()
 #LOG END TIME
-file.wirte("End Time:" str(time.strftime("%Y-%m-%d %H:%M:%S")))
-print("End Time:", time.strftime("%Y-%m-%d %H:%M:%S"))  # Local time
+file.wirte("End Time:" + str(time.strftime("%Y-%m-%d %H:%M:%S")))
+print("End Time:", + time.strftime("%Y-%m-%d %H:%M:%S"))  # Local time
 print("Mission completed.")
 file.close()
 exit()
