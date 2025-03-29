@@ -145,8 +145,8 @@ def send_ned_velocity(vx, vy, vz):
 
 def precision_land_pixel_offset():
     print("Beginning precision landing...")
-    send_ned_velocity(-1, 0, 0)
-    time.sleep(1)
+    send_ned_velocity(-1, 0, -2)
+    time.sleep(2)
     while vehicle.armed:
         img = picam2.capture_array()
         img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
