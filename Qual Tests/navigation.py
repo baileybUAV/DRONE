@@ -116,6 +116,19 @@ def marker_watcher():
             break
         time.sleep(0.5)
 
+
+def setup_telem_connection():
+    telem_port = "/dev/ttyUSB0"  # USB telemetry module
+    baud_rate = 57600  # Ensure the correct baud rate
+    
+    print("Connecting to telemetry module for Pi-to-Pi communication...")
+    telem_link = mavutil.mavlink_connection(telem_port, baud=baud_rate)
+    print("Telemetry link established!")
+    return telem_link
+
+
+telem_link = setup_telem_connection()
+
 # ------------------- PRECISION LANDING -------------------
 def send_ned_velocity(vx, vy, vz):
     msg = vehicle.message_factory.set_position_target_local_ned_encode(
