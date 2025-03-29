@@ -22,7 +22,7 @@ if len(sys.argv) > 1:
         viewVideo = False
 
 ############ ARUCO/CV2 SETTINGS ############
-id_to_find = 1
+id_to_find = 0
 marker_size = 0.253  # meters
 
 realWorldEfficiency = 0.7  # Account for real-world drone speed variation
@@ -39,7 +39,7 @@ cameraDistortion = np.loadtxt(calib_path + 'cameraDistortion.txt', delimiter=','
 
 def identify_marker(marker_id):
     """Identifies and prints whether the marker is a Drop Zone or Non-Drop Zone."""
-    if marker_id == 1:
+    if marker_id == 0:
         print("Marker Identified: Drop Zone")
     else:
         print(f"Marker {marker_id} Identified: Non-Drop Zone")

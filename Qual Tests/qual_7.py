@@ -26,6 +26,8 @@ far_Kp = 0.0025
 near_Kp = 0.0015
 marker_found_flag = threading.Event()
 
+file = open("log_uav.txt", "w")
+
 # ------------------- CONNECT -------------------
 def connectMyCopter():
     print("Start Connection")
@@ -155,6 +157,7 @@ def precision_land_pixel_offset():
         corners, ids, _ = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
         if ids is not None and marker_id in ids:
             #LOG DISCOVERY
+            file.write("Marker Found!\n")
             index = np.where(ids == marker_id)[0][0]
             c = corners[index][0]
             cx = int(np.mean(c[:, 0]))
@@ -186,6 +189,7 @@ def precision_land_pixel_offset():
                 start_time = time.time()
                 while time.time() - start_time < 10:
                     #LOG LOCATION
+
                     lat = vehicle.location.global_frame.lat
                     lon = vehicle.location.global_frame.lon
                     alt = vehicle.location.global_frame.alt
@@ -198,7 +202,7 @@ def precision_land_pixel_offset():
                         print("Error: No valid GPS data available")
                     else:
                         covariance_matrix = np.full((36,), float('nan'), dtype=np.float32)
-
+                        file.write("Location Found:" str(lat)"/n"str(lon))
                         msg = telem_link.mav.global_position_int_cov_encode(
                             int(time.time() * 1e6),
                             mavutil.mavlink.MAV_ESTIMATOR_TYPE_GPS,
@@ -216,6 +220,7 @@ def precision_land_pixel_offset():
                         time.sleep(2)  # Send every 2 seconds
                         print("DropZone Location Sent!")
                         #LOG TRANSMISSION
+                        file.write("Location Sent to UGV")
                         print("Switching to LAND mode...")
                         vehicle.mode = VehicleMode("LAND")
                 break
@@ -226,6 +231,7 @@ def precision_land_pixel_offset():
 # ------------------- MAIN MISSION -------------------
 print("Starting mission...")
 #LOG START TIME
+file.write("Start Time:" str(time.strftime("%Y-%m-%d %H:%M:%S")))
 print("Start Time:", time.strftime("%Y-%m-%d %H:%M:%S"))  # Local time
 manual_arm()
 takeoff(takeoff_altitude)
@@ -256,6 +262,8 @@ else:
 picam2.stop()
 vehicle.close()
 #LOG END TIME
+file.wirte("End Time:" str(time.strftime("%Y-%m-%d %H:%M:%S")))
 print("End Time:", time.strftime("%Y-%m-%d %H:%M:%S"))  # Local time
 print("Mission completed.")
+file.close()
 exit()
