@@ -229,7 +229,7 @@ def precision_land_pixel_offset():
                         time.sleep(2)  # Send every 2 seconds
                         #LOG  TRANSMISSION
                         print("DropZone Location Sent!")
-                vehicle.mode = VehicleMode("LAND")
+                vehicle.mode = VehicleMode("RTL")
                 break
         else:
             send_ned_velocity(0, 0, 0)
