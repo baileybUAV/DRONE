@@ -21,7 +21,7 @@ slow_down_altitude = 3.0
 far_center_threshold = 50  # pixels
 near_center_threshold = 15  # pixels
 far_Kp = 0.004
-near_Kp = 0.001
+near_Kp = 0.002
 
 # ------------------- CONNECT TO VEHICLE -------------------
 # Connect to the Vehicle function

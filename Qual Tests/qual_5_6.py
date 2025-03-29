@@ -129,11 +129,11 @@ vehicle.airspeed = 3
 
 # Waypoints List
 waypoints = [
-    LocationGlobalRelative(27.9868129,-82.3016216, 6),
-    LocationGlobalRelative(27.9868271,-82.3012877, 6),
-    LocationGlobalRelative(27.9867146,-82.3012809, 6),
-    LocationGlobalRelative(27.9867122,-82.3016216, 6),
-    LocationGlobalRelative(27.9867773,-82.3014553, 6),# Returning to first waypoint
+    LocationGlobalRelative(27.9865908,-82.3017772, 6),
+    LocationGlobalRelative(27.9865914,-82.3016015, 6),
+    LocationGlobalRelative(27.9866785,-82.3015860, 6),
+    LocationGlobalRelative(27.9866660,-82.3017711, 6)
+   
 ]
 
 # Move through waypoints without waiting
