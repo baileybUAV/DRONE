@@ -242,7 +242,7 @@ manual_arm()
 
 
 takeoff(takeoff_altitude)
-vehicle.airspeed = 3
+
 
 watcher_thread = threading.Thread(target=marker_watcher, daemon=True)
 watcher_thread.start()
