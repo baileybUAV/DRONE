@@ -261,7 +261,7 @@ else:
 picam2.stop()
 vehicle.close()
 #LOG END TIME
-file.wirte("End Time:" + str(time.strftime("%Y-%m-%d %H:%M:%S")))
+file.write("End Time:" + str(time.strftime("%Y-%m-%d %H:%M:%S")))
 print("End Time:", + time.strftime("%Y-%m-%d %H:%M:%S"))  # Local time
 print("Mission completed.")
 file.close()
