@@ -11,7 +11,7 @@ from picamera2 import Picamera2
 import argparse
 
 # ------------------- CONFIG -------------------
-takeoff_altitude = 6  # meters
+takeoff_altitude = 5  # meters
 camera_resolution = (1280, 720)
 marker_id = 0
 marker_size = 0.253  # meters
@@ -23,10 +23,8 @@ slow_down_altitude = 3.0
 far_center_threshold = 50
 near_center_threshold = 15
 far_Kp = 0.0025
-near_Kp = 0.0015
+near_Kp = 0.001
 marker_found_flag = threading.Event()
-
-#file = open("log_uav.txt", "w")
 
 # ------------------- CONNECT -------------------
 def connectMyCopter():
@@ -41,19 +39,6 @@ def connectMyCopter():
     return vehicle
 
 vehicle = connectMyCopter()
-
-# Function to establish telemetry connection between Raspberry Pis
-
-def setup_telem_connection():
-    telem_port = "/dev/ttyUSB0"  # USB telemetry module
-    baud_rate = 57600  # Ensure the correct baud rate
-    
-    print("Connecting to telemetry module for Pi-to-Pi communication...")
-    telem_link = mavutil.mavlink_connection(telem_port, baud=baud_rate)
-    print("Telemetry link established!")
-    return telem_link
-
-telem_link = setup_telem_connection()
 
 # ------------------- CAMERA SETUP -------------------
 picam2 = Picamera2()
@@ -131,6 +116,19 @@ def marker_watcher():
             break
         time.sleep(0.5)
 
+
+def setup_telem_connection():
+    telem_port = "/dev/ttyUSB0"  # USB telemetry module
+    baud_rate = 57600  # Ensure the correct baud rate
+    
+    print("Connecting to telemetry module for Pi-to-Pi communication...")
+    telem_link = mavutil.mavlink_connection(telem_port, baud=baud_rate)
+    print("Telemetry link established!")
+    return telem_link
+
+
+telem_link = setup_telem_connection()
+
 # ------------------- PRECISION LANDING -------------------
 def send_ned_velocity(vx, vy, vz):
     msg = vehicle.message_factory.set_position_target_local_ned_encode(
@@ -147,8 +145,8 @@ def send_ned_velocity(vx, vy, vz):
 
 def precision_land_pixel_offset():
     print("Beginning precision landing...")
-    send_ned_velocity(-1, 0, 0)
-    time.sleep(1)
+    send_ned_velocity(-3, 0, 0)
+    time.sleep(2)
     while vehicle.armed:
         img = picam2.capture_array()
         img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
@@ -156,8 +154,6 @@ def precision_land_pixel_offset():
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         corners, ids, _ = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
         if ids is not None and marker_id in ids:
-            #LOG DISCOVERY
-            #file.write("Marker Found!\n")
             index = np.where(ids == marker_id)[0][0]
             c = corners[index][0]
             cx = int(np.mean(c[:, 0]))
@@ -182,12 +178,10 @@ def precision_land_pixel_offset():
                     vy = dx * Kp
                     send_ned_velocity(vx, vy, descent_vz)
             else:
-                print("Reached final height. Getting GPS Lock....")
-                time.sleep(5)
-                print("GPS Lock Acquired...")
+                print("Reached final height. Switching to LAND.")
                 print("Starting data transmission...")
                 start_time = time.time()
-                while time.time() - start_time < 10:
+                while time.time() - start_time < 20:
                     #LOG LOCATION
 
                     lat = vehicle.location.global_frame.lat
@@ -219,10 +213,7 @@ def precision_land_pixel_offset():
                         print(f"Sent Aruco Location Data: Lat {lat}, Lon {lon}, Alt {alt}, VelN {velocity_north}, VelE {velocity_east}, VelD {velocity_down}")
                         time.sleep(2)  # Send every 2 seconds
                         print("DropZone Location Sent!")
-                        #LOG TRANSMISSION
-                        #file.write("Location Sent to UGV")
-                        print("Switching to LAND mode...")
-                        vehicle.mode = VehicleMode("LAND")
+                vehicle.mode = VehicleMode("LAND")
                 break
         else:
             send_ned_velocity(0, 0, 0)
@@ -230,9 +221,6 @@ def precision_land_pixel_offset():
 
 # ------------------- MAIN MISSION -------------------
 print("Starting mission...")
-#LOG START TIME
-#file.write("Start Time:" + str(time.strftime("%Y-%m-%d %H:%M:%S")))
-#print("Start Time:", time.strftime("%Y-%m-%d %H:%M:%S"))  # Local time
 manual_arm()
 takeoff(takeoff_altitude)
 vehicle.airspeed = 3
@@ -260,9 +248,6 @@ else:
 
 picam2.stop()
 vehicle.close()
-#LOG END TIME
-#file.write("End Time:" + str(time.strftime("%Y-%m-%d %H:%M:%S")))
-#print("End Time:", + time.strftime("%Y-%m-%d %H:%M:%S"))  # Local time
 print("Mission completed.")
-#file.close()
 exit()
+# ------------------- END OF SCRIPT -------------------
