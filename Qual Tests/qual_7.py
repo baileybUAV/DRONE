@@ -11,15 +11,6 @@ from picamera2 import Picamera2
 import argparse
 import logging
 
-# ------------------- LOGGING SETUP -------------------
-logging.basicConfig(
-    filename='drone_mission_log.txt',
-    filemode='w',
-    level=logging.INFO,
-    format='%(asctime)s [%(levelname)s]: %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
-)
-logger = logging.getLogger()
 
 # ------------------- CONFIG -------------------
 takeoff_altitude = 5  # meters
@@ -37,7 +28,15 @@ far_Kp = 0.0025
 near_Kp = 0.001
 marker_found_flag = threading.Event()
 
-file = open('Logging.txt', 'w') 
+# ------------------- LOGGING SETUP -------------------
+logging.basicConfig(
+    filename='drone_mission_log.txt',
+    filemode='w',
+    level=logging.INFO,
+    format='%(asctime)s [%(levelname)s]: %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+logger = logging.getLogger()
 
 
 # ------------------- CONNECT -------------------
@@ -226,7 +225,7 @@ def precision_land_pixel_offset():
 
                         telem_link.mav.send(msg)
                         print(f"Sent Aruco Location Data: Lat {lat}, Lon {lon}, Alt {alt}, VelN {velocity_north}, VelE {velocity_east}, VelD {velocity_down}")
-                        logger.info(f"Transmitting DropZone Aruco Location Data: Lat {lat}, Lon {lon}, Alt {alt}")
+                        logger.info(f"      Transmitting DropZone Aruco Location Data: Lat {lat}, Lon {lon}, Alt {alt}")
                         time.sleep(2)  # Send every 2 seconds
                         #LOG  TRANSMISSION
                         print("DropZone Location Sent!")
