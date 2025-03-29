@@ -9,6 +9,8 @@ import time
 import threading
 from picamera2 import Picamera2
 import argparse
+import logging
+
 
 # ------------------- CONFIG -------------------
 takeoff_altitude = 5  # meters
@@ -16,7 +18,7 @@ camera_resolution = (1280, 720)
 marker_id = 0
 marker_size = 0.253  # meters
 descent_speed = 0.2
-final_land_height = 1.5
+final_land_height = 1.0
 fast_descent_speed = 0.30
 slow_descent_speed = 0.12
 slow_down_altitude = 3.0
@@ -25,6 +27,17 @@ near_center_threshold = 15
 far_Kp = 0.0025
 near_Kp = 0.001
 marker_found_flag = threading.Event()
+
+# ------------------- LOGGING SETUP -------------------
+logging.basicConfig(
+    filename='test.txt',
+    filemode='w',
+    level=logging.INFO,
+    format='%(asctime)s [%(levelname)s]: %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+logger = logging.getLogger()
+
 
 # ------------------- CONNECT -------------------
 def connectMyCopter():
@@ -111,7 +124,9 @@ def marker_watcher():
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         corners, ids, _ = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
         if ids is not None and marker_id in ids:
-            print("MARKER FOUND! Triggering precision landing...")
+            print("DropZone Found! Triggering precision landing...")
+            #LOG DETECTION
+            logger.info("DropZone Found! Triggering precision landing...")
             marker_found_flag.set()
             break
         time.sleep(0.5)
@@ -183,7 +198,6 @@ def precision_land_pixel_offset():
                 start_time = time.time()
                 while time.time() - start_time < 20:
                     #LOG LOCATION
-
                     lat = vehicle.location.global_frame.lat
                     lon = vehicle.location.global_frame.lon
                     alt = vehicle.location.global_frame.alt
@@ -211,9 +225,11 @@ def precision_land_pixel_offset():
 
                         telem_link.mav.send(msg)
                         print(f"Sent Aruco Location Data: Lat {lat}, Lon {lon}, Alt {alt}, VelN {velocity_north}, VelE {velocity_east}, VelD {velocity_down}")
+                        logger.info(f"Transmitting DropZone Aruco Location Data TO UGV: Lat {lat}, Lon {lon}, Alt {alt}")
                         time.sleep(2)  # Send every 2 seconds
+                        #LOG  TRANSMISSION
                         print("DropZone Location Sent!")
-                vehicle.mode = VehicleMode("RTL")
+                vehicle.mode = VehicleMode("LAND")
                 break
         else:
             send_ned_velocity(0, 0, 0)
@@ -221,9 +237,12 @@ def precision_land_pixel_offset():
 
 # ------------------- MAIN MISSION -------------------
 print("Starting mission...")
+logger.info("Starting mission...")
 manual_arm()
+
+
 takeoff(takeoff_altitude)
-vehicle.airspeed = 3
+
 
 watcher_thread = threading.Thread(target=marker_watcher, daemon=True)
 watcher_thread.start()
@@ -246,8 +265,12 @@ else:
     print("No marker detected during mission. Proceeding to normal landing.")
     land()
 
-picam2.stop()
-vehicle.close()
+
+logger.info("Mission completed.")
+logger.info("Logging Ended.")
 print("Mission completed.")
+
+picam2.stop()
+vehicle.close() 
 exit()
 # ------------------- END OF SCRIPT -------------------
