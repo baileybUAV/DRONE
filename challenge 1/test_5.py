@@ -24,8 +24,6 @@ slow_descent_speed = 0.12
 slow_down_altitude = 3.0
 far_center_threshold = 50
 near_center_threshold = 20
-center_threshold = 20
-Kp = 0.001
 far_Kp = 0.0020
 near_Kp = 0.001
 marker_found_flag = threading.Event()
@@ -165,6 +163,9 @@ def precision_land_pixel_offset():
 
     centered_time = None
     landed = False
+
+    send_ned_velocity(-2,0,0)
+    time.sleep(1.5)
 
     while vehicle.armed:
         img = picam2.capture_array()
