@@ -19,14 +19,14 @@ marker_id = 0
 marker_size = 0.253  # meters
 descent_speed = 0.2
 final_land_height = 1.0
-fast_descent_speed = 0.25
+fast_descent_speed = 0.30
 slow_descent_speed = 0.12
 slow_down_altitude = 3.0
 far_center_threshold = 50
 near_center_threshold = 15
 center_threshold = 20
 Kp = 0.001
-far_Kp = 0.002
+far_Kp = 0.0020
 near_Kp = 0.001
 marker_found_flag = threading.Event()
 
@@ -160,8 +160,6 @@ def send_ned_velocity(vx, vy, vz):
     vehicle.send_mavlink(msg)
     vehicle.flush()
 
-#This code is a revision for the aruco centering and landing code. It SHOULD center and descend like before, then when it reaches 1.5 meters it will stop sending velocity corrections and just position lock itself. It does that for 2 seconds and then lands
-
 def precision_land_pixel_offset():
     print("Beginning precision landing...")
 
@@ -186,8 +184,12 @@ def precision_land_pixel_offset():
             dx = cx - frame_center[0]
             dy = cy - frame_center[1]
 
-            print(f"Offset dx={dx}, dy={dy}")
+            # Grab valid altitude before evaluating thresholds
+            altitude = vehicle.rangefinder.distance
+            if altitude is None or altitude <= 0:
+                altitude = 10.0  # fallback
 
+            # Determine precision control values based on altitude
             if altitude > slow_down_altitude:
                 descent_speed = fast_descent_speed
                 center_threshold = far_center_threshold
@@ -197,25 +199,20 @@ def precision_land_pixel_offset():
                 center_threshold = near_center_threshold
                 Kp = near_Kp
 
-            altitude = vehicle.rangefinder.distance
-            if altitude is None or altitude <= 0:
-                altitude = 10.0  # fallback
+            print(f"[INFO] dx={dx}, dy={dy}, alt={altitude:.2f}, center_threshold={center_threshold}, Kp={Kp}")
 
             if altitude > final_land_height:
-                # ✅ Require centering before descending
                 if abs(dx) < center_threshold and abs(dy) < center_threshold:
                     print(f"[DESCENT] Centered. Descending... vz={descent_speed}")
                     send_ned_velocity(0, 0, descent_speed)
-                    centered_time = None  # clear hold state
+                    centered_time = None
                 else:
-                    # Not centered yet — correct laterally
                     vx = -dy * Kp
                     vy = dx * Kp
                     print(f"[CORRECTING] vx={vx:.3f}, vy={vy:.3f}")
                     send_ned_velocity(vx, vy, 0)
                     centered_time = None
             else:
-                # ✅ Final height reached — precision lock stage
                 if abs(dx) < center_threshold and abs(dy) < center_threshold:
                     if centered_time is None:
                         centered_time = time.time()
@@ -232,19 +229,18 @@ def precision_land_pixel_offset():
                         print(f"[LOCK] Holding... {elapsed:.1f}s")
                         send_ned_velocity(0, 0, 0)
                 else:
-                    # Still not centered — hold off LAND
                     centered_time = None
                     vx = -dy * Kp
                     vy = dx * Kp
                     print(f"[RE-CENTERING @ LOW ALT] vx={vx:.3f}, vy={vy:.3f}")
                     send_ned_velocity(vx, vy, 0)
-
         else:
             print("[INFO] Marker not detected. Hovering.")
             centered_time = None
             send_ned_velocity(0, 0, 0)
 
         time.sleep(0.1)
+
 
 # ------------------- MAIN MISSION -------------------
 print("Starting mission...")
