@@ -95,7 +95,9 @@ def takeoff(aTargetAltitude):
             print("Reached target altitude")
 
             if not photo_taken:
-                print("Taking photo at target altitude...")
+                print("Taking 2 photo at target altitude...")
+                capture_photo()
+                time.sleep(2)
                 capture_photo()
                 photo_taken = True
 
