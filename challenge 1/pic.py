@@ -33,7 +33,6 @@ capture_photo(1)
 time.sleep(3)
 
 capture_photo(2)
-time.sleep(3)
 
 picam2.stop()
 print("Finished.")
