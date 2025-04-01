@@ -24,13 +24,15 @@ config = picam2.create_preview_configuration(main={"size": camera_resolution, "f
 picam2.configure(config)
 picam2.start()
 
-def capture_photo():
+def capture_photo(index=None):
     img = picam2.capture_array()
     img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
     timestamp = time.strftime("%Y%m%d_%H%M%S")
-    photo_path = f"hover_photo_{timestamp}.jpg"
+    suffix = f"_{index}" if index is not None else ""
+    photo_path = f"hover_photo_{timestamp}{suffix}.jpg"
     cv2.imwrite(photo_path, img)
     print(f"Photo captured and saved at: {photo_path}")
+
 
 
 # ------------------ DRONE CONNECT ------------------
@@ -95,12 +97,12 @@ def takeoff(aTargetAltitude):
             print("Reached target altitude")
 
             if not photo_taken:
-                print("Taking 2 photo at target altitude...")
-                capture_photo()
+                print("Taking 3 photo at target altitude...")
+                capture_photo(1)
                 time.sleep(1)
-                capture_photo()
+                capture_photo(2)
                 time.sleep(1)
-                capture_photo()
+                capture_photo(3)
                 print("Photos taken")
                 photo_taken = True
 
