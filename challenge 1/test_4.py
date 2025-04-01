@@ -24,8 +24,8 @@ slow_descent_speed = 0.12
 slow_down_altitude = 3.0
 far_center_threshold = 50
 near_center_threshold = 20
-Kp = 0.001
-Kd = 0.001
+Kp = 0.0005
+Kd = 0.0005
 marker_found_flag = threading.Event()
 
 # ------------------- LOGGING SETUP -------------------
