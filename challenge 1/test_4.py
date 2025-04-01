@@ -13,19 +13,19 @@ import logging
 
 
 # ------------------- CONFIG -------------------
-takeoff_altitude = 5  # meters
+takeoff_altitude = 6  # meters
 camera_resolution = (1280, 720)
 marker_id = 0
 marker_size = 0.253  # meters
 descent_speed = 0.2
 final_land_height = 1.0
-fast_descent_speed = 0.30
+fast_descent_speed = 0.25
 slow_descent_speed = 0.12
 slow_down_altitude = 3.0
 far_center_threshold = 50
 near_center_threshold = 15
 center_threshold = 20
-far_Kp = 0.0025
+far_Kp = 0.002
 near_Kp = 0.001
 Kp = 0.001
 Kd = 0.001
@@ -164,7 +164,7 @@ def send_ned_velocity(vx, vy, vz):
 #This code is a revision for the aruco centering and landing code. This one adds the use of D controls to help stop the overshoot from using P gains only.
 
 def precision_land_pixel_offset():
-    print("Beginning precision landing with PD control...")
+    print("Beginning precision landing with adaptive PD control...")
 
     dx_prev, dy_prev = 0, 0
     last_time = time.time()
@@ -195,23 +195,33 @@ def precision_land_pixel_offset():
             dy_rate = (dy - dy_prev) / dt
             dx_prev, dy_prev = dx, dy
 
-            print(f"Offset dx={dx}, dy={dy}, dx_rate={dx_rate:.1f}, dy_rate={dy_rate:.1f}")
-
             altitude = vehicle.rangefinder.distance
             if altitude is None or altitude <= 0:
                 altitude = 10.0  # fallback
 
-            if abs(dx) < center_threshold and abs(dy) < center_threshold:
+            # 🔁 Adaptive control logic
+            if altitude > slow_down_altitude:
+                current_Kp = far_Kp
+                current_threshold = far_center_threshold
+                descent_vz = fast_descent_speed
+            else:
+                current_Kp = near_Kp
+                current_threshold = near_center_threshold
+                descent_vz = slow_descent_speed
+
+            print(f"[INFO] dx={dx}, dy={dy}, dx_rate={dx_rate:.1f}, dy_rate={dy_rate:.1f}, alt={altitude:.2f}, Kp={current_Kp}, center_thresh={current_threshold}")
+
+            if abs(dx) < current_threshold and abs(dy) < current_threshold:
                 if altitude > final_land_height:
                     print("[DESCENT] Centered. Descending...")
-                    send_ned_velocity(0, 0, descent_speed)
+                    send_ned_velocity(0, 0, descent_vz)
                 else:
                     print("[LAND] Centered and low. Switching to LAND.")
                     vehicle.mode = VehicleMode("LAND")
                     break
             else:
-                vx = -dy * Kp - dy_rate * Kd
-                vy = dx * Kp + dx_rate * Kd
+                vx = -dy * current_Kp - dy_rate * Kd
+                vy = dx * current_Kp + dx_rate * Kd
                 print(f"[PD-CONTROL] vx={vx:.3f}, vy={vy:.3f}")
                 send_ned_velocity(vx, vy, 0)
 
@@ -220,6 +230,7 @@ def precision_land_pixel_offset():
             send_ned_velocity(0, 0, 0)
 
         time.sleep(0.1)
+
 
 # ------------------- MAIN MISSION -------------------
 print("Starting mission...")
