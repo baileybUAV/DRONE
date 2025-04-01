@@ -97,8 +97,11 @@ def takeoff(aTargetAltitude):
             if not photo_taken:
                 print("Taking 2 photo at target altitude...")
                 capture_photo()
-                time.sleep(2)
+                time.sleep(1)
                 capture_photo()
+                time.sleep(1)
+                capture_photo()
+                print("Photos taken")
                 photo_taken = True
 
             break
@@ -122,11 +125,8 @@ manual_arm()
 print("MAIN: Manual Arm Success")
 
 takeoff(target_altitude)
-print("MAIN: Takeoff Completed")
+print("MAIN: Takeoff and Photo Shoot Completed")
 
-vehicle.mode = VehicleMode("LOITER")
-print("MAIN: Loiter Mode for 15 seconds")
-time.sleep(15)
 
 land()
 print("MAIN: IF DRONE IS NOT UPSIDE DOWN, CONGRATS!")
