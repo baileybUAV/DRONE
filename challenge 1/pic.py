@@ -1,6 +1,5 @@
 import time
 from picamera2 import Picamera2
-import cv2
 
 # ------------------ CONFIG ------------------
 camera_resolution = (1280, 720)
@@ -17,17 +16,14 @@ time.sleep(2)
 
 # ------------------ CAPTURE FUNCTION ------------------
 def capture_photo(index=None):
-    img = picam2.capture_array()
-    img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
     timestamp = time.strftime("%Y%m%d_%H%M%S")
     suffix = f"_{index}" if index is not None else ""
-    photo_path = f"hover_photo_{timestamp}{suffix}.jpg"
-    cv2.imwrite(photo_path, img)
+    photo_path = f"photo_{timestamp}{suffix}.jpg"
+    picam2.capture_file(photo_path)
     print(f"Photo captured and saved at: {photo_path}")
 
 # ------------------ MAIN ------------------
 print("Code started")
-time.sleep(5)
 
 capture_photo(1)
 time.sleep(3)
@@ -35,7 +31,5 @@ time.sleep(3)
 capture_photo(2)
 
 picam2.stop()
+picam2.close()
 print("Finished.")
-picam2.close()  # Close the camera if needed
-# picam2.close()
-# picam2.close()  # Close the camera if needed
