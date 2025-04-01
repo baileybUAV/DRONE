@@ -19,14 +19,14 @@ marker_id = 0
 marker_size = 0.253  # meters
 descent_speed = 0.2
 final_land_height = 1.0
-fast_descent_speed = 0.30
+fast_descent_speed = 0.25
 slow_descent_speed = 0.12
 slow_down_altitude = 3.0
 far_center_threshold = 50
 near_center_threshold = 15
 center_threshold = 20
 Kp = 0.001
-far_Kp = 0.0025
+far_Kp = 0.002
 near_Kp = 0.001
 marker_found_flag = threading.Event()
 
@@ -187,6 +187,15 @@ def precision_land_pixel_offset():
             dy = cy - frame_center[1]
 
             print(f"Offset dx={dx}, dy={dy}")
+
+            if altitude > slow_down_altitude:
+                descent_speed = fast_descent_speed
+                center_threshold = far_center_threshold
+                Kp = far_Kp
+            else:
+                descent_speed = slow_descent_speed
+                center_threshold = near_center_threshold
+                Kp = near_Kp
 
             altitude = vehicle.rangefinder.distance
             if altitude is None or altitude <= 0:
