@@ -13,7 +13,7 @@ import logging
 
 
 # ------------------- CONFIG -------------------
-takeoff_altitude = 5  # meters
+takeoff_altitude = 7  # meters
 camera_resolution = (1280, 720)
 marker_id = 0
 marker_size = 0.253  # meters
@@ -215,24 +215,14 @@ def precision_land_pixel_offset():
                     centered_time = None
             else:
                 if abs(dx) < center_threshold and abs(dy) < center_threshold:
-                    if centered_time is None:
-                        centered_time = time.time()
-                        print("[LOCK] Marker centered. Holding position...")
-
-                    elapsed = time.time() - centered_time
-
-                    if elapsed >= 2.0 and not landed:
-                        print("[LAND] Hold complete. Switching to LAND.")
-                        vehicle.mode = VehicleMode("LAND")
-                        landed = True
-                        break
-                    else:
-                        print(f"[LOCK] Holding... {elapsed:.1f}s")
-                        send_ned_velocity(0, 0, 0)
+                    print("[LAND] Centering complete. Switching to LAND.")
+                    logger.info("Marker Centered. Landing")
+                    vehicle.mode = VehicleMode("LAND")
+                    landed = True
+                    break
                 else:
-                    centered_time = None
-                    vx = -dy * Kp
-                    vy = dx * Kp
+                    vx = -dy * Kp * 0.75
+                    vy = dx * Kp * 0.75
                     print(f"[RE-CENTERING @ LOW ALT] vx={vx:.3f}, vy={vy:.3f}")
                     send_ned_velocity(vx, vy, 0)
         else:
