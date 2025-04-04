@@ -13,7 +13,7 @@ import logging
 
 
 # ------------------- CONFIG -------------------
-takeoff_altitude = 5  # meters
+takeoff_altitude = 3.5  # meters
 camera_resolution = (1600, 1080)
 marker_id = 0
 marker_size = 0.253  # meters
@@ -24,7 +24,7 @@ slow_descent_speed = 0.12
 slow_down_altitude = 3.0
 far_center_threshold = 50
 near_center_threshold = 20
-center_threshold = 20
+center_threshold = 25
 Kp = 0.001
 far_Kp = 0.0020
 near_Kp = 0.001
@@ -212,7 +212,7 @@ def precision_land_pixel_offset():
 
                     elapsed = time.time() - centered_time
 
-                    if elapsed >= 2.0 and not landed:
+                    if elapsed >= 0.25 and not landed:
                         print("[LAND] Hold complete. Switching to LAND.")
                         vehicle.mode = VehicleMode("LAND")
                         landed = True
