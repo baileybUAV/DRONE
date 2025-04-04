@@ -16,13 +16,13 @@ camera_resolution = (1600, 1080)
 marker_id = 0
 marker_size = 0.253  # meters
 descent_speed = 0.2
-final_land_height = 0.5
+final_land_height = 1.0
 fast_descent_speed = 0.30
 slow_descent_speed = 0.12
-slow_down_altitude = 2.5
+slow_down_altitude = 3
 far_center_threshold = 50
 near_center_threshold = 15
-far_Kp = 0.0025
+far_Kp = 0.0015
 near_Kp = 0.001
 marker_found_flag = threading.Event()
 
