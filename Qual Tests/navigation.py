@@ -11,8 +11,8 @@ from picamera2 import Picamera2
 import argparse
 
 # ------------------- CONFIG -------------------
-takeoff_altitude = 5  # meters
-camera_resolution = (1280, 720)
+takeoff_altitude = 4  # meters
+camera_resolution = (1600, 1080)
 marker_id = 0
 marker_size = 0.253  # meters
 descent_speed = 0.2
@@ -179,40 +179,6 @@ def precision_land_pixel_offset():
                     send_ned_velocity(vx, vy, descent_vz)
             else:
                 print("Reached final height. Switching to LAND.")
-                print("Starting data transmission...")
-                start_time = time.time()
-                while time.time() - start_time < 20:
-                    #LOG LOCATION
-
-                    lat = vehicle.location.global_frame.lat
-                    lon = vehicle.location.global_frame.lon
-                    alt = vehicle.location.global_frame.alt
-                    rel_alt = vehicle.location.global_relative_frame.alt
-                    velocity_north = vehicle.velocity[0]
-                    velocity_east = vehicle.velocity[1]
-                    velocity_down = vehicle.velocity[2]
-
-                    if lat is None or lon is None or lat == 0 or lon == 0:
-                        print("Error: No valid GPS data available")
-                    else:
-                        covariance_matrix = np.full((36,), float('nan'), dtype=np.float32)
-                        #file.write("Location Found:" + str(lat) + "/n" + str(lon))
-                        msg = telem_link.mav.global_position_int_cov_encode(
-                            int(time.time() * 1e6),
-                            mavutil.mavlink.MAV_ESTIMATOR_TYPE_GPS,
-                            int(lat * 1e7),
-                            int(lon * 1e7),
-                            int(alt * 1000),
-                            int(rel_alt * 1000),
-                            float(velocity_north),
-                            float(velocity_east),
-                            float(velocity_down),
-                            covariance_matrix)
-
-                        telem_link.mav.send(msg)
-                        print(f"Sent Aruco Location Data: Lat {lat}, Lon {lon}, Alt {alt}, VelN {velocity_north}, VelE {velocity_east}, VelD {velocity_down}")
-                        time.sleep(2)  # Send every 2 seconds
-                        print("DropZone Location Sent!")
                 vehicle.mode = VehicleMode("LAND")
                 break
         else:
