@@ -9,38 +9,22 @@ import time
 import threading
 from picamera2 import Picamera2
 import argparse
-import logging
-
 
 # ------------------- CONFIG -------------------
 takeoff_altitude = 3.5  # meters
-camera_resolution = (1280, 720)
+camera_resolution = (1600, 1080)
 marker_id = 0
 marker_size = 0.253  # meters
 descent_speed = 0.2
 final_land_height = 1.0
 fast_descent_speed = 0.30
 slow_descent_speed = 0.12
-slow_down_altitude = 3.0
-far_center_threshold = 50
-near_center_threshold = 15
-center_threshold = 20
-far_Kp = 0.0025
+slow_down_altitude = 3
+far_center_threshold = 30
+near_center_threshold = 10
+far_Kp = 0.0015
 near_Kp = 0.001
-Kp = 0.001
-Kd = 0.001
 marker_found_flag = threading.Event()
-
-# ------------------- LOGGING SETUP -------------------
-logging.basicConfig(
-    filename='drone_mission_log.txt',
-    filemode='w',
-    level=logging.INFO,
-    format='%(asctime)s [%(levelname)s]: %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
-)
-logger = logging.getLogger()
-
 
 # ------------------- CONNECT -------------------
 def connectMyCopter():
@@ -85,9 +69,9 @@ def takeoff(aTargetAltitude):
     print("Taking off!")
     vehicle.simple_takeoff(aTargetAltitude)
     while True:
-        alt = vehicle.location.global_relative_frame.alt
+        alt = vehicle.rangefinder.distance
         print(f"Altitude: {alt:.2f}")
-        if alt >= aTargetAltitude * 0.85:
+        if alt >= aTargetAltitude * 0.90:
             print("Reached target altitude")
             break
         time.sleep(1)
@@ -127,28 +111,21 @@ def marker_watcher():
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         corners, ids, _ = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
         if ids is not None and marker_id in ids:
-            print("DropZone Found! Stopping drift before precision landing...")
-            logger.info("DropZone Found! Triggering precision landing...")
-
-            for _ in range(10):
-                vn, ve, _ = vehicle.velocity
-                cancel_vx = -vn * 0.5
-                cancel_vy = -ve * 0.5
-                print(f"[CANCEL DRIFT] vx={cancel_vx:.2f}, vy={cancel_vy:.2f}")
-                send_ned_velocity(cancel_vx, cancel_vy, 0)
-                time.sleep(0.1)
-
+            print("MARKER FOUND! Triggering precision landing...")
             marker_found_flag.set()
             break
         time.sleep(0.5)
 
+
 def setup_telem_connection():
-    telem_port = "/dev/ttyUSB0"
-    baud_rate = 57600
+    telem_port = "/dev/ttyUSB0"  # USB telemetry module
+    baud_rate = 57600  # Ensure the correct baud rate
+    
     print("Connecting to telemetry module for Pi-to-Pi communication...")
     telem_link = mavutil.mavlink_connection(telem_port, baud=baud_rate)
     print("Telemetry link established!")
     return telem_link
+
 
 telem_link = setup_telem_connection()
 
@@ -168,29 +145,23 @@ def send_ned_velocity(vx, vy, vz):
 
 def precision_land_pixel_offset():
     print("Beginning precision landing...")
-
+    send_ned_velocity(-1, 0, 0)
+    time.sleep(2)
     while vehicle.armed:
         img = picam2.capture_array()
         img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
         img = cv2.undistort(img, camera_matrix, camera_distortion)
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
         corners, ids, _ = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
-
         if ids is not None and marker_id in ids:
             index = np.where(ids == marker_id)[0][0]
             c = corners[index][0]
             cx = int(np.mean(c[:, 0]))
             cy = int(np.mean(c[:, 1]))
-
             frame_center = (camera_resolution[0] // 2, camera_resolution[1] // 2)
             dx = cx - frame_center[0]
             dy = cy - frame_center[1]
-
-            altitude = vehicle.rangefinder.distance
-            if altitude is None or altitude <= 0:
-                altitude = 10.0  # fallback
-
+            altitude = vehicle.rangefinder.distance or 10.0
             if altitude > slow_down_altitude:
                 descent_vz = fast_descent_speed
                 center_threshold = far_center_threshold
@@ -199,34 +170,32 @@ def precision_land_pixel_offset():
                 descent_vz = slow_descent_speed
                 center_threshold = near_center_threshold
                 Kp = near_Kp
-
-            print(f"[INFO] dx={dx}, dy={dy}, alt={altitude:.2f}, center_threshold={center_threshold}, Kp={Kp}")
-
             if altitude > final_land_height:
                 if abs(dx) < center_threshold and abs(dy) < center_threshold:
-                    print(f"[DESCENT] Centered. Descending... vz={descent_vz}")
                     send_ned_velocity(0, 0, descent_vz)
                 else:
                     vx = -dy * Kp
                     vy = dx * Kp
-                    print(f"[CORRECTING] vx={vx:.3f}, vy={vy:.3f}")
-                    send_ned_velocity(vx, vy, 0)
+                    send_ned_velocity(vx, vy, descent_vz)
             else:
-                print("[LAND] Final height reached. Initiating LAND.")
+                print("Reached final height. Switching to LAND.")
+                if abs(dx) < 5 and abs(dy) < 5:
+                    send_ned_velocity(0, 0, descent_vz)
+                else:
+                    vx = -dy * Kp
+                    vy = dx * Kp
+                    send_ned_velocity(vx, vy, 0)
                 vehicle.mode = VehicleMode("LAND")
                 break
         else:
-            print("[INFO] Marker not detected. Hovering.")
             send_ned_velocity(0, 0, 0)
-
         time.sleep(0.1)
 
 # ------------------- MAIN MISSION -------------------
 print("Starting mission...")
-logger.info("Starting mission...")
 manual_arm()
-
 takeoff(takeoff_altitude)
+vehicle.airspeed = 3
 
 watcher_thread = threading.Thread(target=marker_watcher, daemon=True)
 watcher_thread.start()
@@ -249,11 +218,8 @@ else:
     print("No marker detected during mission. Proceeding to normal landing.")
     land()
 
-logger.info("Mission completed.")
-logger.info("Logging Ended.")
-print("Mission completed.")
-
 picam2.stop()
 vehicle.close()
+print("Mission completed.")
 exit()
 # ------------------- END OF SCRIPT -------------------
