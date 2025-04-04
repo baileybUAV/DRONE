@@ -20,8 +20,14 @@ target_altitude = 6  # in meters
 
 # ------------------ CAMERA SETUP ------------------
 picam2 = Picamera2()
-config = picam2.create_preview_configuration(main={"size": camera_resolution, "format": "RGB888"})
+config = picam2.create_preview_configuration(main={"size": camera_resolution, "format": "RGB888"}, buffer_count=2)
 picam2.configure(config)
+picam2.set_controls({
+    "AfMode": 1,           # Enable continuous autofocus (if supported)
+    "AfTrigger": 0,        # Start autofocus loop
+    "AwbEnable": True,     # Auto white balance
+    "AeEnable": True,      # Auto exposure
+})
 picam2.start()
 
 def capture_photo(index=None):
