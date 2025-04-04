@@ -13,7 +13,7 @@ import logging
 
 
 # ------------------- CONFIG -------------------
-takeoff_altitude = 5  # meters
+takeoff_altitude = 3.5  # meters
 camera_resolution = (1280, 720)
 marker_id = 0
 marker_size = 0.253  # meters
