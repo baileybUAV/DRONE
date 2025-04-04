@@ -11,15 +11,15 @@ from picamera2 import Picamera2
 import argparse
 
 # ------------------- CONFIG -------------------
-takeoff_altitude = 4  # meters
+takeoff_altitude = 3.5  # meters
 camera_resolution = (1600, 1080)
 marker_id = 0
 marker_size = 0.253  # meters
 descent_speed = 0.2
-final_land_height = 1.0
+final_land_height = 0.5
 fast_descent_speed = 0.30
 slow_descent_speed = 0.12
-slow_down_altitude = 3.0
+slow_down_altitude = 2.5
 far_center_threshold = 50
 near_center_threshold = 15
 far_Kp = 0.0025
@@ -69,9 +69,9 @@ def takeoff(aTargetAltitude):
     print("Taking off!")
     vehicle.simple_takeoff(aTargetAltitude)
     while True:
-        alt = vehicle.location.global_relative_frame.alt
+        alt = vehicle.rangefinder.distance
         print(f"Altitude: {alt:.2f}")
-        if alt >= aTargetAltitude * 0.85:
+        if alt >= aTargetAltitude * 0.90:
             print("Reached target altitude")
             break
         time.sleep(1)
@@ -145,7 +145,7 @@ def send_ned_velocity(vx, vy, vz):
 
 def precision_land_pixel_offset():
     print("Beginning precision landing...")
-    send_ned_velocity(-2, 0, 0)
+    send_ned_velocity(-1, 0, 0)
     time.sleep(2)
     while vehicle.armed:
         img = picam2.capture_array()
