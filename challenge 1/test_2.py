@@ -17,11 +17,11 @@ marker_id = 0
 marker_size = 0.253  # meters
 descent_speed = 0.2
 final_land_height = 1.0
-fast_descent_speed = 0.30
-slow_descent_speed = 0.12
+fast_descent_speed = 0.20
+slow_descent_speed = 0.01
 slow_down_altitude = 3
 far_center_threshold = 30
-near_center_threshold = 10
+near_center_threshold = 5
 far_Kp = 0.0015
 near_Kp = 0.001
 marker_found_flag = threading.Event()
@@ -178,14 +178,8 @@ def precision_land_pixel_offset():
                     vy = dx * Kp
                     send_ned_velocity(vx, vy, descent_vz)
             else:
-                print("Reached final height. Centering.")
-                if abs(dx) < 1 and abs(dy) < 1:
-                    vehicle.mode = VehicleMode("LAND")
-                else:
-                    vx = -dy * Kp
-                    vy = dx * Kp
-                    send_ned_velocity(vx, vy, 0)
-                
+                print("Reached final height. Switching to LAND.")
+                vehicle.mode = VehicleMode("LAND")
                 break
         else:
             send_ned_velocity(0, 0, 0)
