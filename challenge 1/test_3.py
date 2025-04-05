@@ -9,38 +9,23 @@ import time
 import threading
 from picamera2 import Picamera2
 import argparse
-import logging
-
 
 # ------------------- CONFIG -------------------
-takeoff_altitude = 5  # meters
-camera_resolution = (1280, 720)
+takeoff_altitude = 3.5  # meters
+camera_resolution = (1600, 1080)
 marker_id = 0
 marker_size = 0.253  # meters
 descent_speed = 0.2
-final_land_height = 1.0
-fast_descent_speed = 0.30
-slow_descent_speed = 0.12
-slow_down_altitude = 3.0
-far_center_threshold = 50
-near_center_threshold = 15
-angle_threshold = 20  # degrees
-far_Kp = 0.0025
+final_land_height = 1.0  # meters
+fast_descent_speed = 0.2
+slow_descent_speed = 0.05
+slow_down_altitude = 2
+far_center_threshold = 35
+near_center_threshold = 20
+far_Kp = 0.0015
 near_Kp = 0.001
-Kp_ang =   0.05
-Kd_ang = 0.05
+vertical_center_offset = -100  # <-- Offset applied here
 marker_found_flag = threading.Event()
-
-# ------------------- LOGGING SETUP -------------------
-logging.basicConfig(
-    filename='drone_mission_log.txt',
-    filemode='w',
-    level=logging.INFO,
-    format='%(asctime)s [%(levelname)s]: %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
-)
-logger = logging.getLogger()
-
 
 # ------------------- CONNECT -------------------
 def connectMyCopter():
@@ -69,6 +54,15 @@ camera_distortion = np.loadtxt(calib_path + 'cameraDistortion.txt', delimiter=',
 aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_6X6_250)
 parameters = aruco.DetectorParameters()
 
+def capture_photo(index=None):
+    img = picam2.capture_array()
+    img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+    timestamp = time.strftime("%Y%m%d_%H%M%S")
+    suffix = f"_{index}" if index is not None else ""
+    photo_path = f"aruco_photo_{timestamp}{suffix}.jpg"
+    cv2.imwrite(photo_path, img)
+    print(f"Photo captured and saved at: {photo_path}")
+
 # ------------------- FLIGHT FUNCTIONS -------------------
 def manual_arm():
     print("Pre-arm checks...")
@@ -87,7 +81,7 @@ def takeoff(aTargetAltitude):
     while True:
         alt = vehicle.location.global_relative_frame.alt
         print(f"Altitude: {alt:.2f}")
-        if alt >= aTargetAltitude * 0.85:
+        if alt >= aTargetAltitude * 0.90:
             print("Reached target altitude")
             break
         time.sleep(1)
@@ -127,23 +121,18 @@ def marker_watcher():
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         corners, ids, _ = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
         if ids is not None and marker_id in ids:
-            print("DropZone Found! Triggering precision landing...")
-            #LOG DETECTION
-            logger.info("DropZone Found! Triggering precision landing...")
+            print("MARKER FOUND! Triggering precision landing...")
             marker_found_flag.set()
             break
         time.sleep(0.5)
 
-
 def setup_telem_connection():
-    telem_port = "/dev/ttyUSB0"  # USB telemetry module
-    baud_rate = 57600  # Ensure the correct baud rate
-    
+    telem_port = "/dev/ttyUSB0"
+    baud_rate = 57600
     print("Connecting to telemetry module for Pi-to-Pi communication...")
     telem_link = mavutil.mavlink_connection(telem_port, baud=baud_rate)
     print("Telemetry link established!")
     return telem_link
-
 
 telem_link = setup_telem_connection()
 
@@ -161,30 +150,18 @@ def send_ned_velocity(vx, vy, vz):
     vehicle.send_mavlink(msg)
     vehicle.flush()
 
-#This code is a new version of aruco centering and landing using angles but NOT using the PLND method in mission planner.
-
-def precision_land_angle_pd():
-    print("Beginning angle-based precision landing with PD control...")
-
-    x_ang_prev, y_ang_prev = 0, 0
-    last_time = time.time()
-
-    # ✅ Use actual FOV values
-    FOV_X = math.radians(110)  # Horizontal FOV in radians
-    FOV_Y = math.radians(85)   # Vertical FOV in radians
+def precision_land_pixel_offset():
+    print("Beginning precision landing...")
+    capture_photo(0)
+    send_ned_velocity(-1, 0, 0)
+    time.sleep(2)
+    capture_photo(1)
 
     while vehicle.armed:
-        current_time = time.time()
-        dt = current_time - last_time
-        last_time = current_time
-
-        # --- Image capture and processing ---
         img = picam2.capture_array()
         img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
         img = cv2.undistort(img, camera_matrix, camera_distortion)
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
-        # --- ArUco detection ---
         corners, ids, _ = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
 
         if ids is not None and marker_id in ids:
@@ -193,55 +170,49 @@ def precision_land_angle_pd():
             cx = int(np.mean(c[:, 0]))
             cy = int(np.mean(c[:, 1]))
 
-            # --- Calculate angle offsets from image center ---
-            cx0 = camera_resolution[0] // 2
-            cy0 = camera_resolution[1] // 2
+            frame_center = (
+                camera_resolution[0] // 2,
+                (camera_resolution[1] // 2) + vertical_center_offset
+            )
 
-            x_ang = (cx - cx0) * (FOV_X / camera_resolution[0])
-            y_ang = (cy - cy0) * (FOV_Y / camera_resolution[1])
+            dx = cx - frame_center[0]
+            dy = cy - frame_center[1]
 
-            # --- Derivative (angular rate) ---
-            x_ang_rate = (x_ang - x_ang_prev) / dt
-            y_ang_rate = (y_ang - y_ang_prev) / dt
-            x_ang_prev, y_ang_prev = x_ang, y_ang
+            altitude = vehicle.rangefinder.distance or 10.0
 
-            print(f"Angle x={math.degrees(x_ang):.2f}°, y={math.degrees(y_ang):.2f}°")
-
-            # --- Get current altitude from LiDAR ---
-            altitude = vehicle.rangefinder.distance
-            if altitude is None or altitude <= 0:
-                altitude = 10.0  # Fallback value
-
-            # --- Landing logic ---
-            if abs(x_ang) < angle_threshold and abs(y_ang) < angle_threshold:
-                if altitude > final_land_height:
-                    print("[DESCENT] Centered. Descending...")
-                    send_ned_velocity(0, 0, descent_speed)
-                else:
-                    print("[LAND] Centered and low. Switching to LAND.")
-                    vehicle.mode = VehicleMode("LAND")
-                    break
+            if altitude > slow_down_altitude:
+                descent_vz = fast_descent_speed
+                center_threshold = far_center_threshold
+                Kp = far_Kp
             else:
-                # --- PD Control based on angle ---
-                vx = -y_ang * Kp_ang - y_ang_rate * Kd_ang
-                vy =  x_ang * Kp_ang + x_ang_rate * Kd_ang
-                print(f"[PD-ANGLE] vx={vx:.3f}, vy={vy:.3f}")
-                send_ned_velocity(vx, vy, 0)
+                descent_vz = slow_descent_speed
+                center_threshold = near_center_threshold
+                Kp = near_Kp
 
+            if altitude > final_land_height:
+                if abs(dx) < center_threshold and abs(dy) < center_threshold:
+                    print("Marker centered. Descending...")
+                    send_ned_velocity(0, 0, descent_vz)
+                else:
+                    print("Centering marker...")
+                    vx = -dy * Kp
+                    vy = dx * Kp
+                    send_ned_velocity(vx, vy, 0.01)
+            else:
+                print("Reached final height. Switching to LAND.")
+                send_ned_velocity(0, 0, 0)
+                vehicle.mode = VehicleMode("LAND")
+                capture_photo(2)
+                break
         else:
-            print("[INFO] Marker not detected. Hovering.")
             send_ned_velocity(0, 0, 0)
-
-        time.sleep(0.1)  # 10 Hz loop
+        time.sleep(0.1)
 
 # ------------------- MAIN MISSION -------------------
 print("Starting mission...")
-logger.info("Starting mission...")
 manual_arm()
-
-
 takeoff(takeoff_altitude)
-
+vehicle.airspeed = 3
 
 watcher_thread = threading.Thread(target=marker_watcher, daemon=True)
 watcher_thread.start()
@@ -259,17 +230,13 @@ for i, wp in enumerate(waypoints):
         break
 
 if marker_found_flag.is_set():
-    precision_land_angle_pd()
+    precision_land_pixel_offset()
 else:
     print("No marker detected during mission. Proceeding to normal landing.")
     land()
 
-
-logger.info("Mission completed.")
-logger.info("Logging Ended.")
-print("Mission completed.")
-
 picam2.stop()
-vehicle.close() 
+vehicle.close()
+print("Mission completed.")
 exit()
 # ------------------- END OF SCRIPT -------------------
