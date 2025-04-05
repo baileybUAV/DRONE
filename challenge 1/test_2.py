@@ -22,7 +22,7 @@ slow_descent_speed = 0.05
 slow_down_altitude = 2
 far_center_threshold = 30
 near_center_threshold = 15
-far_Kp = 0.0015
+far_Kp = 0.0020
 near_Kp = 0.0015
 marker_found_flag = threading.Event()
 
@@ -52,6 +52,16 @@ camera_matrix = np.loadtxt(calib_path + 'cameraMatrix.txt', delimiter=',')
 camera_distortion = np.loadtxt(calib_path + 'cameraDistortion.txt', delimiter=',')
 aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_6X6_250)
 parameters = aruco.DetectorParameters()
+
+
+def capture_photo(index=None):
+    img = picam2.capture_array()
+    img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+    timestamp = time.strftime("%Y%m%d_%H%M%S")
+    suffix = f"_{index}" if index is not None else ""
+    photo_path = f"hover_photo_{timestamp}{suffix}.jpg"
+    cv2.imwrite(photo_path, img)
+    print(f"Photo captured and saved at: {photo_path}")
 
 # ------------------- FLIGHT FUNCTIONS -------------------
 def manual_arm():
@@ -181,14 +191,8 @@ def precision_land_pixel_offset():
                     send_ned_velocity(vx, vy, 0.01)
             else:
                 print("Reached final height. Switching to LAND.")
-                if abs(dx) < 10 and abs(dy) < 10:
-                    print("Marker centered. Preparing to land.")
-                    send_ned_velocity(0, 0, 0)
-                    vehicle.mode = VehicleMode("LAND")
-                else:
-                    vx = -dy * Kp
-                    vy = dx * Kp
-                    send_ned_velocity(vx, vy, descent_vz)
+                send_ned_velocity(0, 0, 0)
+                vehicle.mode = VehicleMode("LAND")
                 break
         else:
             send_ned_velocity(0, 0, 0)
