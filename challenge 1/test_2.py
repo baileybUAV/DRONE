@@ -20,10 +20,10 @@ final_land_height = 1.5  # meters
 fast_descent_speed = 0.2
 slow_descent_speed = 0.05
 slow_down_altitude = 2
-far_center_threshold = 30
-near_center_threshold = 15
-far_Kp = 0.0020
-near_Kp = 0.0015
+far_center_threshold = 35
+near_center_threshold = 20
+far_Kp = 0.0015
+near_Kp = 0.001
 marker_found_flag = threading.Event()
 
 # ------------------- CONNECT -------------------
@@ -59,7 +59,7 @@ def capture_photo(index=None):
     img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
     timestamp = time.strftime("%Y%m%d_%H%M%S")
     suffix = f"_{index}" if index is not None else ""
-    photo_path = f"hover_photo_{timestamp}{suffix}.jpg"
+    photo_path = f"aruco_photo_{timestamp}{suffix}.jpg"
     cv2.imwrite(photo_path, img)
     print(f"Photo captured and saved at: {photo_path}")
 
@@ -155,8 +155,10 @@ def send_ned_velocity(vx, vy, vz):
 
 def precision_land_pixel_offset():
     print("Beginning precision landing...")
+    capture_photo(0)
     send_ned_velocity(-1, 0, 0)
     time.sleep(2)
+    capture_photo(1)
     while vehicle.armed:
         img = picam2.capture_array()
         img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
@@ -184,6 +186,7 @@ def precision_land_pixel_offset():
                 if abs(dx) < center_threshold and abs(dy) < center_threshold:
                     print("Marker centered. Descending...")
                     send_ned_velocity(0, 0, descent_vz)
+                    
                 else:
                     print("Centering marker...")
                     vx = -dy * Kp
@@ -193,6 +196,7 @@ def precision_land_pixel_offset():
                 print("Reached final height. Switching to LAND.")
                 send_ned_velocity(0, 0, 0)
                 vehicle.mode = VehicleMode("LAND")
+                capture_photo(2)
                 break
         else:
             send_ned_velocity(0, 0, 0)
