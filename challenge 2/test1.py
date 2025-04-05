@@ -1,7 +1,3 @@
-
-#BEST CODE 
-
-
 from dronekit import connect, VehicleMode, LocationGlobalRelative
 from pymavlink import mavutil
 from geopy.distance import distance as geopy_distance
@@ -13,6 +9,7 @@ import time
 import threading
 from picamera2 import Picamera2
 import argparse
+import logging
 
 # ------------------- CONFIG -------------------
 takeoff_altitude = 3.5  # meters
@@ -57,6 +54,14 @@ camera_distortion = np.loadtxt(calib_path + 'cameraDistortion.txt', delimiter=',
 aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_6X6_250)
 parameters = aruco.DetectorParameters()
 
+logging.basicConfig(
+    filename='test.txt',
+    filemode='w',
+    level=logging.INFO,
+    format='%(asctime)s [%(levelname)s]: %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+logger = logging.getLogger()
 
 def capture_photo(index=None):
     img = picam2.capture_array()
@@ -197,10 +202,49 @@ def precision_land_pixel_offset():
                     vy = dx * Kp
                     send_ned_velocity(vx, vy, 0.01)
             else:
-                print("Reached final height. Switching to LAND.")
+                print("Reached final height.")
                 send_ned_velocity(0, 0, 0)
-                vehicle.mode = VehicleMode("LAND")
                 capture_photo(2)
+                print("Starting data transmission...")
+                start_time = time.time()
+                while time.time() - start_time < 60:
+                    #LOG LOCATION
+                    send_ned_velocity(0, 0, 0)
+                    lat = vehicle.location.global_frame.lat
+                    lon = vehicle.location.global_frame.lon
+                    alt = vehicle.location.global_frame.alt
+                    rel_alt = vehicle.location.global_relative_frame.alt
+                    velocity_north = vehicle.velocity[0]
+                    velocity_east = vehicle.velocity[1]
+                    velocity_down = vehicle.velocity[2]
+
+                    if vehicle.gps_0.fix_type != 6:
+                        print("Error: GPS is not in Fix")
+                        print("GPS STATUS: %s" % vehicle.gps_0.fix_type)
+
+                    else:
+                        covariance_matrix = np.full((36,), float('nan'), dtype=np.float32)
+                        msg = telem_link.mav.global_position_int_cov_encode(
+                            int(time.time() * 1e6),
+                            mavutil.mavlink.MAV_ESTIMATOR_TYPE_GPS,
+                            int(lat * 1e7),
+                            int(lon * 1e7),
+                            int(alt * 1000),
+                            int(rel_alt * 1000),
+                            float(velocity_north),
+                            float(velocity_east),
+                            float(velocity_down),
+                            covariance_matrix)
+
+                        telem_link.mav.send(msg)
+                        print(f"Sent Aruco Location Data: Lat {lat}, Lon {lon}, Alt {alt}")
+                        print("GPS STATUS: %s" % vehicle.gps_0.fix_type)
+                        logger.info(f"Transmitting DropZone Aruco Location Data TO UGV: Lat {lat}, Lon {lon}, Alt {alt}")
+                        time.sleep(2)  # Send every 2 seconds
+                        #LOG  TRANSMISSION
+                        print("DropZone Location Sent!")
+                vehicle.mode = VehicleMode("RTL")
+                
                 break
         else:
             send_ned_velocity(0, 0, 0)
