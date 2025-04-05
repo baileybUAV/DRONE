@@ -69,7 +69,7 @@ def takeoff(aTargetAltitude):
     print("Taking off!")
     vehicle.simple_takeoff(aTargetAltitude)
     while True:
-        alt = vehicle.rangefinder.distance
+        alt = vehicle.location.global_relative_frame.alt
         print(f"Altitude: {alt:.2f}")
         if alt >= aTargetAltitude * 0.90:
             print("Reached target altitude")
