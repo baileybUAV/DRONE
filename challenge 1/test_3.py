@@ -176,7 +176,7 @@ def precision_land_pixel_offset():
             cy = int(np.mean(c[:, 1]))
             frame_center = (camera_resolution[0] // 2, camera_resolution[1] // 2)
             dx = cx - frame_center[0]
-            dy = cy - frame_center[1] - 125  # Adjust for camera pos
+            dy = cy - frame_center[1] - 120  # Adjust for camera pos
             altitude = vehicle.rangefinder.distance or 10.0
             if altitude > slow_down_altitude:
                 descent_vz = fast_descent_speed
