@@ -216,10 +216,10 @@ watcher_thread = threading.Thread(target=marker_watcher, daemon=True)
 watcher_thread.start()
 
 waypoints = [
-    LocationGlobalRelative(27.9865908,-82.3017772, 6),
-    LocationGlobalRelative(27.9865914,-82.3016015, 6),
-    LocationGlobalRelative(27.9866785,-82.3015860, 6),
-    LocationGlobalRelative(27.9866660,-82.3017711, 6)
+    LocationGlobalRelative(27.9865908,-82.3017772, takeoff_altitude),
+    LocationGlobalRelative(27.9865914,-82.3016015, takeoff_altitude),
+    LocationGlobalRelative(27.9866785,-82.3015860, takeoff_altitude),
+    LocationGlobalRelative(27.9866660,-82.3017711, takeoff_altitude)
 ]
 
 for i, wp in enumerate(waypoints):
