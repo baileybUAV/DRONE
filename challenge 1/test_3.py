@@ -24,7 +24,6 @@ far_center_threshold = 35
 near_center_threshold = 20
 far_Kp = 0.0015
 near_Kp = 0.001
-vertical_center_offset = -100  # <-- Offset applied here
 marker_found_flag = threading.Event()
 
 # ------------------- CONNECT -------------------
@@ -53,6 +52,7 @@ camera_matrix = np.loadtxt(calib_path + 'cameraMatrix.txt', delimiter=',')
 camera_distortion = np.loadtxt(calib_path + 'cameraDistortion.txt', delimiter=',')
 aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_6X6_250)
 parameters = aruco.DetectorParameters()
+
 
 def capture_photo(index=None):
     img = picam2.capture_array()
@@ -126,13 +126,16 @@ def marker_watcher():
             break
         time.sleep(0.5)
 
+
 def setup_telem_connection():
-    telem_port = "/dev/ttyUSB0"
-    baud_rate = 57600
+    telem_port = "/dev/ttyUSB0"  # USB telemetry module
+    baud_rate = 57600  # Ensure the correct baud rate
+    
     print("Connecting to telemetry module for Pi-to-Pi communication...")
     telem_link = mavutil.mavlink_connection(telem_port, baud=baud_rate)
     print("Telemetry link established!")
     return telem_link
+
 
 telem_link = setup_telem_connection()
 
@@ -156,30 +159,21 @@ def precision_land_pixel_offset():
     send_ned_velocity(-1, 0, 0)
     time.sleep(2)
     capture_photo(1)
-
     while vehicle.armed:
         img = picam2.capture_array()
         img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
         img = cv2.undistort(img, camera_matrix, camera_distortion)
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         corners, ids, _ = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
-
         if ids is not None and marker_id in ids:
             index = np.where(ids == marker_id)[0][0]
             c = corners[index][0]
             cx = int(np.mean(c[:, 0]))
             cy = int(np.mean(c[:, 1]))
-
-            frame_center = (
-                camera_resolution[0] // 2,
-                (camera_resolution[1] // 2) + vertical_center_offset
-            )
-
+            frame_center = (camera_resolution[0] // 2, camera_resolution[1] // 2)
             dx = cx - frame_center[0]
-            dy = cy - frame_center[1]
-
+            dy = cy - frame_center[1] + 100
             altitude = vehicle.rangefinder.distance or 10.0
-
             if altitude > slow_down_altitude:
                 descent_vz = fast_descent_speed
                 center_threshold = far_center_threshold
@@ -188,11 +182,11 @@ def precision_land_pixel_offset():
                 descent_vz = slow_descent_speed
                 center_threshold = near_center_threshold
                 Kp = near_Kp
-
             if altitude > final_land_height:
                 if abs(dx) < center_threshold and abs(dy) < center_threshold:
                     print("Marker centered. Descending...")
                     send_ned_velocity(0, 0, descent_vz)
+                    
                 else:
                     print("Centering marker...")
                     vx = -dy * Kp
