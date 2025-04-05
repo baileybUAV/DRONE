@@ -178,8 +178,14 @@ def precision_land_pixel_offset():
                     vy = dx * Kp
                     send_ned_velocity(vx, vy, descent_vz)
             else:
-                print("Reached final height. Switching to LAND.")
-                vehicle.mode = VehicleMode("LAND")
+                if abs(dx) < center_threshold and abs(dy) < center_threshold:
+                    print("Reached final height. Switching to LAND.")
+                    send_ned_velocity(0, 0, 0)
+                    vehicle.mode = VehicleMode("LAND")
+                else:
+                    vx = -dy * Kp
+                    vy = dx * Kp
+                    send_ned_velocity(vx, vy, -descent_vz)
                 break
         else:
             send_ned_velocity(0, 0, 0)
