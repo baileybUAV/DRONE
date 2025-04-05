@@ -16,9 +16,9 @@ camera_resolution = (1600, 1080)
 marker_id = 0
 marker_size = 0.253  # meters
 descent_speed = 0.2
-final_land_height = 1.0
+final_land_height = 1.5  # meters
 fast_descent_speed = 0.2
-slow_descent_speed = 0.01
+slow_descent_speed = 0.05
 slow_down_altitude = 2
 far_center_threshold = 30
 near_center_threshold = 10
@@ -176,7 +176,7 @@ def precision_land_pixel_offset():
                 else:
                     vx = -dy * Kp
                     vy = dx * Kp
-                    send_ned_velocity(vx, vy, descent_vz)
+                    send_ned_velocity(vx, vy, 0)
             else:
                 if abs(dx) < center_threshold and abs(dy) < center_threshold:
                     print("Reached final height. Switching to LAND.")
@@ -185,7 +185,7 @@ def precision_land_pixel_offset():
                 else:
                     vx = -dy * Kp
                     vy = dx * Kp
-                    send_ned_velocity(vx, vy, -descent_vz)
+                    send_ned_velocity(vx, vy, descent_vz)
                 break
         else:
             send_ned_velocity(0, 0, 0)
