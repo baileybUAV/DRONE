@@ -191,8 +191,6 @@ def precision_land_pixel_offset():
             if altitude > final_land_height:
                 if abs(dx) < center_threshold and abs(dy) < center_threshold:
                     print("Marker centered. Descending...")
-                    aruco_lat = vehicle.location.global_frame.lat
-                    aruco_lon = vehicle.location.global_frame.lon
                     send_ned_velocity(0, 0, descent_vz)
                     
                 else:
