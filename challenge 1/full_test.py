@@ -24,8 +24,8 @@ final_land_height = 1.0  # meters
 fast_descent_speed = 0.2
 slow_descent_speed = 0.05
 slow_down_altitude = 2
-far_center_threshold = 35
-near_center_threshold = 20
+far_center_threshold = 30
+near_center_threshold = 15
 far_Kp = 0.0015
 near_Kp = 0.001
 marker_found_flag = threading.Event()
@@ -191,6 +191,8 @@ def precision_land_pixel_offset():
             if altitude > final_land_height:
                 if abs(dx) < center_threshold and abs(dy) < center_threshold:
                     print("Marker centered. Descending...")
+                    aruco_lat = vehicle.location.global_frame.lat
+                    aruco_lon = vehicle.location.global_frame.lon
                     send_ned_velocity(0, 0, descent_vz)
                     
                 else:
@@ -206,6 +208,7 @@ def precision_land_pixel_offset():
                 capture_photo(2)
                 break
         else:
+            print("Marker Lost. Returning to last known location")
             vehicle.simple_goto(LocationGlobalRelative(aruco_lat, aruco_lon, 5))
         time.sleep(0.1)
 
