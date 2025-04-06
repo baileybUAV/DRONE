@@ -160,7 +160,7 @@ def send_ned_velocity(vx, vy, vz):
 def precision_land_pixel_offset():
     print("Beginning precision landing...")
     capture_photo(0)
-    send_ned_velocity(-1, 0, -2)
+    send_ned_velocity(-1, 0, -1)
     time.sleep(2)
     capture_photo(1)
     while vehicle.armed:
