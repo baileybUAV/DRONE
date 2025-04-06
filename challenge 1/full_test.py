@@ -17,7 +17,7 @@ import argparse
 # ------------------- CONFIG -------------------
 takeoff_altitude = 3  # meters
 camera_resolution = (1600, 1080)
-marker_id = 4
+marker_id = 3
 marker_size = 0.253  # meters
 descent_speed = 0.2
 final_land_height = 1.0  # meters
@@ -159,8 +159,10 @@ def send_ned_velocity(vx, vy, vz):
 
 def precision_land_pixel_offset():
     print("Beginning precision landing...")
+    aruco_lat = vehicle.location.global_frame.lat
+    aruco_lon = vehicle.location.global_frame.lon
     capture_photo(0)
-    send_ned_velocity(-1, 0, -1)
+    send_ned_velocity(0, 0, -1)
     time.sleep(2)
     capture_photo(1)
     while vehicle.armed:
@@ -204,7 +206,7 @@ def precision_land_pixel_offset():
                 capture_photo(2)
                 break
         else:
-            send_ned_velocity(0, 0, 0)
+            vehicle.simple_goto(LocationGlobalRelative(aruco_lat, aruco_lon, 5))
         time.sleep(0.1)
 
 # ------------------- MAIN MISSION -------------------
