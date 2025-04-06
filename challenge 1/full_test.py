@@ -102,7 +102,7 @@ def goto_waypoint(waypoint, num):
         current = vehicle.location.global_relative_frame
         dist = distance_to(waypoint, current)
         print(f"Distance to waypoint {num}: {dist:.2f}m")
-        if dist < 0.5 or marker_found_flag.is_set():
+        if dist < 1 or marker_found_flag.is_set():
             break
         time.sleep(1)
     if marker_found_flag.is_set():
