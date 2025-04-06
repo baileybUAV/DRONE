@@ -15,7 +15,7 @@ from picamera2 import Picamera2
 import argparse
 
 # ------------------- CONFIG -------------------
-takeoff_altitude = 3.5  # meters
+takeoff_altitude = 3  # meters
 camera_resolution = (1600, 1080)
 marker_id = 0
 marker_size = 0.253  # meters
@@ -160,7 +160,7 @@ def send_ned_velocity(vx, vy, vz):
 def precision_land_pixel_offset():
     print("Beginning precision landing...")
     capture_photo(0)
-    send_ned_velocity(-1, 0, 0)
+    send_ned_velocity(-1, 0, -2)
     time.sleep(2)
     capture_photo(1)
     while vehicle.armed:
