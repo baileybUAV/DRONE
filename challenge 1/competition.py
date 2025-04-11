@@ -37,7 +37,7 @@ fast_descent_speed = 0.2
 slow_descent_speed = 0.05
 slow_down_altitude = 2
 far_center_threshold = 30
-near_center_threshold = 10
+near_center_threshold = 15
 far_Kp = 0.0015
 near_Kp = 0.001
 marker_found_flag = threading.Event()
@@ -175,7 +175,7 @@ def precision_land_pixel_offset():
     aruco_lat = vehicle.location.global_frame.lat
     aruco_lon = vehicle.location.global_frame.lon
     capture_photo(0)
-    send_ned_velocity(-1, 0, -1.15)
+    send_ned_velocity(-1, 0, -0.75)
     time.sleep(2)
     capture_photo(1)
     while vehicle.armed:
@@ -224,8 +224,7 @@ def precision_land_pixel_offset():
                 break
         else:
             print("DropZone Lost. Returning to last known location")
-            vehicle.simple_goto(LocationGlobalRelative(aruco_lat, aruco_lon, 6))
-            time.sleep(0.5)
+            vehicle.simple_goto(LocationGlobalRelative(aruco_lat, aruco_lon, 4.5))
         time.sleep(0.1)
 
 # ------------------- MAIN MISSION -------------------
