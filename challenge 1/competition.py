@@ -28,7 +28,7 @@ logger = logging.getLogger()
 
 # ------------------- CONFIG -------------------
 takeoff_altitude = 3  # meters
-camera_resolution = (1600, 1080)
+camera_resolution = (1600, 1300)
 marker_id = 4
 marker_size = 0.253  # meters
 descent_speed = 0.2
@@ -224,7 +224,7 @@ def precision_land_pixel_offset():
                 break
         else:
             print("DropZone Lost. Returning to last known location")
-            vehicle.simple_goto(LocationGlobalRelative(aruco_lat, aruco_lon, 4.5))
+            vehicle.simple_goto(LocationGlobalRelative(aruco_lat, aruco_lon, 6))
             time.sleep(0.5)
         time.sleep(0.1)
 
