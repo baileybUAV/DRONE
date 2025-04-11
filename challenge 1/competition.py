@@ -224,7 +224,7 @@ def precision_land_pixel_offset():
                 break
         else:
             print("DropZone Lost. Returning to last known location")
-            vehicle.simple_goto(LocationGlobalRelative(aruco_lat, aruco_lon, 6))
+            vehicle.simple_goto(LocationGlobalRelative(aruco_lat, aruco_lon, 4.5))
             time.sleep(0.5)
         time.sleep(0.1)
 
