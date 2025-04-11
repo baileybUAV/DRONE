@@ -200,8 +200,6 @@ def precision_land_pixel_offset():
                     send_ned_velocity(vx, vy, 0.01)
             else:
                 print("Reached final height. Switching to LAND.")
-                send_ned_velocity(0, 0, 0.2)
-                time.sleep(6)
                 vehicle.mode = VehicleMode("LAND")
                 capture_photo(2)
                 break
