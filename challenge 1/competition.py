@@ -137,6 +137,10 @@ def marker_watcher():
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         corners, ids, _ = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
         if ids is not None and marker_id in ids:
+            cv2.imshow("Live Camera Feed", img)
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                print("Live feed window closed.")
+                break
             print("DROPZONE FOUND! Triggering precision landing...")
             logger.info("DropZone Detected")
             marker_found_flag.set()
@@ -185,6 +189,10 @@ def precision_land_pixel_offset():
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         corners, ids, _ = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
         if ids is not None and marker_id in ids:
+            cv2.imshow("Live Camera Feed", img)
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                print("Live feed window closed.")
+                break
             index = np.where(ids == marker_id)[0][0]
             c = corners[index][0]
             cx = int(np.mean(c[:, 0]))
