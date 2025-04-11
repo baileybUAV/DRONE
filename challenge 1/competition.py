@@ -16,6 +16,7 @@ import argparse
 import logging
 
 
+#Handles All logging inclduing timestamps and file writing
 logging.basicConfig(
     filename='Challenge2.txt',
     filemode='w',
@@ -136,8 +137,8 @@ def marker_watcher():
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         corners, ids, _ = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
         if ids is not None and marker_id in ids:
-            print("DropZone FOUND! Triggering precision landing...")
-            logger.info("DropZone Found! Triggering precision landing...")
+            print("DROPZONE FOUND! Triggering precision landing...")
+            logger.info("DropZone Detected")
             marker_found_flag.set()
             break
         time.sleep(0.5)
@@ -209,67 +210,29 @@ def precision_land_pixel_offset():
                     print("Centering marker...")
                     vx = -dy * Kp
                     vy = dx * Kp
-                    send_ned_velocity(vx, vy, 0.01)
+                    send_ned_velocity(vx, vy, 0.02)
             else:
-                print("Reached final height. Switching to Land...")
-                capture_photo(2)
+                print("Reached final height. Switching to LAND.")
+                aruco_lat = vehicle.location.global_frame.lat
+                aruco_lon = vehicle.location.global_frame.lon
+                logger.info("DropZone Location Found: %s, %s", aruco_lat, aruco_lon)
+                print("DropZone Location Found:  %s, %s", aruco_lat, aruco_lon)
+                capture_photo(2) 
                 send_ned_velocity(0, 0, 0.2)
                 time.sleep(2)
                 vehicle.mode = VehicleMode("LAND")
-                print("Starting data transmission...")
-                start_time = time.time()
-                while time.time() - start_time < 120:
-                    if vehicle.gps_0.fix_type != 6:
-                         print("Error: GPS does not have RTK Fixed")
-                         print("GPS STATUS: %s" % vehicle.gps_0.fix_type)
-                    else:
-                        #LOG LOCATION
-                        lat = vehicle.location.global_frame.lat
-                        lon = vehicle.location.global_frame.lon
-                        alt = vehicle.location.global_frame.alt
-                        rel_alt = vehicle.location.global_relative_frame.alt
-                        velocity_north = vehicle.velocity[0]
-                        velocity_east = vehicle.velocity[1]
-                        velocity_down = vehicle.velocity[2]
-                        covariance_matrix = np.full((36,), float('nan'), dtype=np.float32)
-                       
-                        msg = telem_link.mav.global_position_int_cov_encode(
-                            int(time.time() * 1e6),
-                            mavutil.mavlink.MAV_ESTIMATOR_TYPE_GPS,
-                                int(lat * 1e7),
-                                int(lon * 1e7),
-                                int(alt * 1000),
-                                int(rel_alt * 1000),
-                                float(velocity_north),
-                                float(velocity_east),
-                                float(velocity_down),
-                                covariance_matrix)
-
-                        telem_link.mav.send(msg)
-                        print(f"Sent Aruco Location Data: Lat {lat}, Lon {lon}, Alt {alt}, VelN {velocity_north}, VelE {velocity_east}, VelD {velocity_down}")
-                        logger.info(f"Transmitting DropZone Aruco Location Data TO UGV: Lat {lat}, Lon {lon}, Alt {alt}")
-                        time.sleep(1)  # Send every 1 seconds
-                        print("DropZone Location Sent!")
-                        break
-                logger.info("DropZone Location Has been Transmitted to UGV")
-                print("Transmission Time has Elapsed")
-                print("Returning to Launch Point...")
-                vehicle.mode = VehicleMode("GUIDED")
-                vehicle.armed = True
-                takeoff(takeoff_altitude)
-                vehicle.mode = VehicleMode("RTL")
                 break
         else:
-            print("Marker Lost. Returning to last known location")
+            print("DropZone Lost. Returning to last known location")
             vehicle.simple_goto(LocationGlobalRelative(aruco_lat, aruco_lon, 5))
+            time.sleep(0.5)
         time.sleep(0.1)
 
 # ------------------- MAIN MISSION -------------------
 print("Starting mission...")
-logger.info("Mission started.")
+logger.info("Mission Start")
 manual_arm()
 takeoff(takeoff_altitude)
-
 
 watcher_thread = threading.Thread(target=marker_watcher, daemon=True)
 watcher_thread.start()
@@ -309,7 +272,7 @@ else:
 
 picam2.stop()
 vehicle.close()
-logger.info("Mission End.")
+logger.info("Mission End")
 print("Mission completed.")
 exit()
 # ------------------- END OF SCRIPT -------------------
