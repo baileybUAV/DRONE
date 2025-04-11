@@ -37,7 +37,7 @@ fast_descent_speed = 0.2
 slow_descent_speed = 0.05
 slow_down_altitude = 2
 far_center_threshold = 30
-near_center_threshold = 15
+near_center_threshold = 10
 far_Kp = 0.0015
 near_Kp = 0.001
 marker_found_flag = threading.Event()
@@ -184,6 +184,7 @@ def precision_land_pixel_offset():
         img = cv2.undistort(img, camera_matrix, camera_distortion)
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         corners, ids, _ = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
+        cv2.imshow('Drone POV', img)
         if ids is not None and marker_id in ids:
             index = np.where(ids == marker_id)[0][0]
             c = corners[index][0]
@@ -216,7 +217,7 @@ def precision_land_pixel_offset():
                 aruco_lat = vehicle.location.global_frame.lat
                 aruco_lon = vehicle.location.global_frame.lon
                 logger.info("DropZone Location Found: %s, %s", aruco_lat, aruco_lon)
-                print("DropZone Location Found:  %s, %s", aruco_lat, aruco_lon)
+                print("DropZone Location Found: ", aruco_lat, aruco_lon)
                 capture_photo(2) 
                 send_ned_velocity(0, 0, 0.2)
                 time.sleep(2)
@@ -232,6 +233,7 @@ def precision_land_pixel_offset():
 print("Starting mission...")
 logger.info("Mission Start")
 manual_arm()
+
 takeoff(takeoff_altitude)
 
 watcher_thread = threading.Thread(target=marker_watcher, daemon=True)
