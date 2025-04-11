@@ -34,7 +34,7 @@ marker_size = 0.253  # meters
 descent_speed = 0.2
 final_land_height = 1.0  # meters
 fast_descent_speed = 0.2
-slow_descent_speed = 0.05
+slow_descent_speed = 0.08
 slow_down_altitude = 2
 far_center_threshold = 30
 near_center_threshold = 15
@@ -210,17 +210,17 @@ def precision_land_pixel_offset():
                     print("Centering marker...")
                     vx = -dy * Kp
                     vy = dx * Kp
-                    send_ned_velocity(vx, vy, 0.02)
+                    send_ned_velocity(vx, vy, 0)
             else:
                 print("Reached final height. Switching to LAND.")
-                aruco_lat = vehicle.location.global_frame.lat
-                aruco_lon = vehicle.location.global_frame.lon
-                logger.info("DropZone Location Found: %s, %s", aruco_lat, aruco_lon)
-                print("DropZone Location Found: ", aruco_lat, aruco_lon)
                 capture_photo(2) 
                 send_ned_velocity(0, 0, 0.2)
                 time.sleep(2)
                 vehicle.mode = VehicleMode("LAND")
+                aruco_lat = vehicle.location.global_frame.lat
+                aruco_lon = vehicle.location.global_frame.lon
+                logger.info("DropZone Location Found: %s, %s", aruco_lat, aruco_lon)
+                print("DropZone Location Found: ", aruco_lat, aruco_lon)
                 break
         else:
             print("DropZone Lost. Returning to last known location")
