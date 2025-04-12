@@ -215,7 +215,6 @@ def precision_land_pixel_offset():
                 vehicle.mode = VehicleMode("LAND")
                 time.sleep(10)
                 print("Starting data transmission...")
-
                 if vehicle.gps_0.fix_type != 6:
                     print("Error: GPS does not have RTK Fixed")
                     print("GPS STATUS: %s" % vehicle.gps_0.fix_type)
@@ -248,16 +247,17 @@ def precision_land_pixel_offset():
                     time.sleep(1)  # Send every 1 seconds
                     print("DropZone Location Sent!")
                         
-                logger.info("DropZone Location Has been Transmitted to UGV")
-                print("Transmission has Elapsed")
-                print("Returning to Launch Point...")
-                vehicle.mode = VehicleMode("GUIDED")
-                vehicle.armed = True
-                takeoff(takeoff_altitude)
-                vehicle.simple_goto(LocationGlobalRelative(27.9866923, -82.3017261, takeoff_altitude))
-                time.sleep(15)
-                vehicle.mode = VehicleMode("LAND")
-                break
+            logger.info("DropZone Location Has been Transmitted to UGV")
+            print("Transmission has Elapsed")
+            print("Returning to Launch Point...")
+            vehicle.mode = VehicleMode("GUIDED")
+            vehicle.armed = True
+            takeoff(takeoff_altitude)
+            time.sleep(1)
+            vehicle.simple_goto(LocationGlobalRelative(27.9866923, -82.3017261, takeoff_altitude))
+            time.sleep(15)
+            vehicle.mode = VehicleMode("LAND")
+            break
         else:
             print("Marker Lost. Returning to last known location")
             vehicle.simple_goto(LocationGlobalRelative(aruco_lat, aruco_lon, 4))
