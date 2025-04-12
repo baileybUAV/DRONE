@@ -213,57 +213,52 @@ def precision_land_pixel_offset():
             else:
                 print("Reached final height. Switching to LAND.")
                 vehicle.mode = VehicleMode("LAND")
-                time.sleep(10)
+                time.sleep(5)
                 print("Starting data transmission...")
-
-                while True:
+                start_time = time.time()
+                while time.time() - start_time < 30:
                     if vehicle.gps_0.fix_type != 6:
-                        print("Error: GPS does not have RTK Fixed")
-                        print("GPS STATUS: %s" % vehicle.gps_0.fix_type)
-                        time.sleep(1)  # Wait before checking again
+                         print("Error: GPS does not have RTK Fixed")
+                         print("GPS STATUS: %s" % vehicle.gps_0.fix_type)
                     else:
-                        print("GPS RTK Fix Acquired")
-                        break  # Exit loop when fix_type is 6
-               
-                #LOG LOCATION
-                lat = vehicle.location.global_frame.lat
-                lon = vehicle.location.global_frame.lon
-                alt = vehicle.location.global_frame.alt
-                rel_alt = vehicle.location.global_relative_frame.alt
-                velocity_north = vehicle.velocity[0]
-                velocity_east = vehicle.velocity[1]
-                velocity_down = vehicle.velocity[2]
-                covariance_matrix = np.full((36,), float('nan'), dtype=np.float32)
+                        #LOG LOCATION
+                        lat = vehicle.location.global_frame.lat
+                        lon = vehicle.location.global_frame.lon
+                        alt = vehicle.location.global_frame.alt
+                        rel_alt = vehicle.location.global_relative_frame.alt
+                        velocity_north = vehicle.velocity[0]
+                        velocity_east = vehicle.velocity[1]
+                        velocity_down = vehicle.velocity[2]
+                        covariance_matrix = np.full((36,), float('nan'), dtype=np.float32)
                        
-                msg = telem_link.mav.global_position_int_cov_encode(
-                    int(time.time() * 1e6),
-                    mavutil.mavlink.MAV_ESTIMATOR_TYPE_GPS,
-                        int(lat * 1e7),
-                        int(lon * 1e7),
-                        int(alt * 1000),
-                        int(rel_alt * 1000),
-                        float(velocity_north),
-                        float(velocity_east),
-                        float(velocity_down),
-                        covariance_matrix)
+                        msg = telem_link.mav.global_position_int_cov_encode(
+                            int(time.time() * 1e6),
+                            mavutil.mavlink.MAV_ESTIMATOR_TYPE_GPS,
+                                int(lat * 1e7),
+                                int(lon * 1e7),
+                                int(alt * 1000),
+                                int(rel_alt * 1000),
+                                float(velocity_north),
+                                float(velocity_east),
+                                float(velocity_down),
+                                covariance_matrix)
 
-                telem_link.mav.send(msg)
-                print(f"Sent Aruco Location Data: Lat {lat}, Lon {lon}, Alt {alt}, VelN {velocity_north}, VelE {velocity_east}, VelD {velocity_down}")
-                logger.info(f"Transmitting DropZone Aruco Location Data TO UGV: Lat {lat}, Lon {lon}, Alt {alt}")
-                time.sleep(1)  # Send every 1 seconds
-                print("DropZone Location Sent!")
+                        telem_link.mav.send(msg)
+                        print(f"Sent Aruco Location Data: Lat {lat}, Lon {lon}, Alt {alt}, VelN {velocity_north}, VelE {velocity_east}, VelD {velocity_down}")
+                        logger.info(f"Transmitting DropZone Aruco Location Data TO UGV: Lat {lat}, Lon {lon}, Alt {alt}")
+                        time.sleep(1)  # Send every 1 seconds
+                        print("DropZone Location Sent!")
                         
-            logger.info("DropZone Location Has been Transmitted to UGV")
-            print("Transmission has Elapsed")
-            print("Returning to Launch Point...")
-            vehicle.mode = VehicleMode("GUIDED")
-            vehicle.armed = True
-            takeoff(takeoff_altitude)
-            time.sleep(1)
-            vehicle.simple_goto(LocationGlobalRelative(27.9866923, -82.3017261, takeoff_altitude))
-            time.sleep(15)
-            vehicle.mode = VehicleMode("LAND")
-            break
+                logger.info("DropZone Location Has been Transmitted to UGV")
+                print("Transmission Time has Elapsed")
+                print("Returning to Launch Point...")
+                vehicle.mode = VehicleMode("GUIDED")
+                vehicle.armed = True
+                takeoff(takeoff_altitude)
+                vehicle.simple_goto(LocationGlobalRelative(27.9866923, -82.3017261, takeoff_altitude))
+                time.sleep(15)
+                vehicle.mode = VehicleMode("LAND")
+                break
         else:
             print("Marker Lost. Returning to last known location")
             vehicle.simple_goto(LocationGlobalRelative(aruco_lat, aruco_lon, 4))
