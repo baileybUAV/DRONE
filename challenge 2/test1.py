@@ -216,7 +216,7 @@ def precision_land_pixel_offset():
                 time.sleep(3)
                 print("Starting data transmission...")
                 start_time = time.time()
-                while time.time() - start_time < 120:
+                while time.time() - start_time < 30:
                     if vehicle.gps_0.fix_type != 6:
                          print("Error: GPS does not have RTK Fixed")
                          print("GPS STATUS: %s" % vehicle.gps_0.fix_type)
