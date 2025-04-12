@@ -213,7 +213,7 @@ def precision_land_pixel_offset():
             else:
                 print("Reached final height. Switching to LAND.")
                 vehicle.mode = VehicleMode("LAND")
-                time.sleep(3)
+                time.sleep(10)
                 print("Starting data transmission...")
 
                 if vehicle.gps_0.fix_type != 6:
