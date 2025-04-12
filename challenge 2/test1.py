@@ -245,7 +245,7 @@ def precision_land_pixel_offset():
                         telem_link.mav.send(msg)
                         print(f"Sent Aruco Location Data: Lat {lat}, Lon {lon}, Alt {alt}, VelN {velocity_north}, VelE {velocity_east}, VelD {velocity_down}")
                         logger.info(f"Transmitting DropZone Aruco Location Data TO UGV: Lat {lat}, Lon {lon}, Alt {alt}")
-                        time.sleep(1)  # Send every 1 seconds
+                        time.sleep(3)  # Send every 1 seconds
                         print("DropZone Location Sent!")
                         break
                         
