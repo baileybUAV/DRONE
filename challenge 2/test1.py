@@ -250,8 +250,10 @@ def precision_land_pixel_offset():
                         break
                         
                 logger.info("DropZone Location Has been Transmitted to UGV")
+                time.sleep(1)
                 print("Transmission Time has Elapsed")
                 print("Returning to Launch Point...")
+                time.sleep(1)
                 vehicle.mode = VehicleMode("GUIDED")
                 vehicle.armed = True
                 takeoff(takeoff_altitude)
