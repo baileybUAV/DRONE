@@ -1,3 +1,5 @@
+                
+
 
 #BEST CODE 
 
@@ -13,11 +15,10 @@ import time
 import threading
 from picamera2 import Picamera2
 import argparse
-import logging
-
+import logging 
 
 logging.basicConfig(
-    filename='Challenge2.txt',
+    filename='drone_mission_log.txt',
     filemode='w',
     level=logging.INFO,
     format='%(asctime)s [%(levelname)s]: %(message)s',
@@ -26,17 +27,17 @@ logging.basicConfig(
 logger = logging.getLogger()
 
 # ------------------- CONFIG -------------------
-takeoff_altitude = 3  # meters
+takeoff_altitude = 2.5  # meters
 camera_resolution = (1600, 1080)
 marker_id = 4
 marker_size = 0.253  # meters
 descent_speed = 0.2
-final_land_height = 1.0  # meters
+final_land_height = 1.5  # meters
 fast_descent_speed = 0.2
 slow_descent_speed = 0.05
 slow_down_altitude = 2
 far_center_threshold = 30
-near_center_threshold = 15
+near_center_threshold = 10
 far_Kp = 0.0015
 near_Kp = 0.001
 marker_found_flag = threading.Event()
@@ -136,8 +137,7 @@ def marker_watcher():
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         corners, ids, _ = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
         if ids is not None and marker_id in ids:
-            print("DropZone FOUND! Triggering precision landing...")
-            logger.info("DropZone Found! Triggering precision landing...")
+            print("MARKER FOUND! Triggering precision landing...")
             marker_found_flag.set()
             break
         time.sleep(0.5)
@@ -211,10 +211,7 @@ def precision_land_pixel_offset():
                     vy = dx * Kp
                     send_ned_velocity(vx, vy, 0.01)
             else:
-                print("Reached final height. Switching to Land...")
-                capture_photo(2)
-                send_ned_velocity(0, 0, 0.2)
-                time.sleep(2)
+                print("Reached final height. Switching to LAND.")
                 vehicle.mode = VehicleMode("LAND")
                 print("Starting data transmission...")
                 start_time = time.time()
@@ -261,12 +258,12 @@ def precision_land_pixel_offset():
                 break
         else:
             print("Marker Lost. Returning to last known location")
-            vehicle.simple_goto(LocationGlobalRelative(aruco_lat, aruco_lon, 5))
+            vehicle.simple_goto(LocationGlobalRelative(aruco_lat, aruco_lon, 4))
         time.sleep(0.1)
 
 # ------------------- MAIN MISSION -------------------
 print("Starting mission...")
-logger.info("Mission started.")
+vehicle.mode = VehicleMode("GUIDED")
 manual_arm()
 takeoff(takeoff_altitude)
 
@@ -275,25 +272,34 @@ watcher_thread = threading.Thread(target=marker_watcher, daemon=True)
 watcher_thread.start()
 
 waypoints = [
-    LocationGlobalRelative(27.9867270, -82.3018334, takeoff_altitude),
-    LocationGlobalRelative(27.9867301, -82.3015706, takeoff_altitude),
-    LocationGlobalRelative(27.9867030, -82.3015706, takeoff_altitude),
-    LocationGlobalRelative(27.9866999, -82.3018328, takeoff_altitude),
-    LocationGlobalRelative(27.9866729, -82.3018322, takeoff_altitude),
-    LocationGlobalRelative(27.9866759, -82.3015706, takeoff_altitude),
-    LocationGlobalRelative(27.9866488, -82.3015706, takeoff_altitude),
-    LocationGlobalRelative(27.9866458, -82.3018317, takeoff_altitude),
-    LocationGlobalRelative(27.9866187, -82.3018311, takeoff_altitude),
-    LocationGlobalRelative(27.9866218, -82.3015706, takeoff_altitude),
-    LocationGlobalRelative(27.9865947, -82.3015706, takeoff_altitude),
-    LocationGlobalRelative(27.9865916, -82.3018305, takeoff_altitude),
-    LocationGlobalRelative(27.9865646, -82.3018299, takeoff_altitude),
-    LocationGlobalRelative(27.9865676, -82.3015706, takeoff_altitude),
-    LocationGlobalRelative(27.9865405, -82.3015706, takeoff_altitude),
-    LocationGlobalRelative(27.9865375, -82.3018294, takeoff_altitude),
-    LocationGlobalRelative(27.9865104, -82.3018288, takeoff_altitude),
-    LocationGlobalRelative(27.9865135, -82.3015706, takeoff_altitude)
-
+LocationGlobalRelative(27.9867311, -82.3018353, takeoff_altitude),
+LocationGlobalRelative(27.9865043, -82.3018326, takeoff_altitude),
+LocationGlobalRelative(27.9865042, -82.3018123, takeoff_altitude),
+LocationGlobalRelative(27.9867310, -82.3018150, takeoff_altitude),
+LocationGlobalRelative(27.9867310, -82.3017947, takeoff_altitude),
+LocationGlobalRelative(27.9865041, -82.3017919, takeoff_altitude),
+LocationGlobalRelative(27.9865039, -82.3017716, takeoff_altitude),
+LocationGlobalRelative(27.9867309, -82.3017743, takeoff_altitude),
+LocationGlobalRelative(27.9867308, -82.3017540, takeoff_altitude),
+LocationGlobalRelative(27.9865038, -82.3017513, takeoff_altitude),
+LocationGlobalRelative(27.9865037, -82.3017309, takeoff_altitude),
+LocationGlobalRelative(27.9867307, -82.3017337, takeoff_altitude),
+LocationGlobalRelative(27.9867306, -82.3017133, takeoff_altitude),
+LocationGlobalRelative(27.9865035, -82.3017106, takeoff_altitude),
+LocationGlobalRelative(27.9865034, -82.3016903, takeoff_altitude),
+LocationGlobalRelative(27.9867305, -82.3016930, takeoff_altitude),
+LocationGlobalRelative(27.9867304, -82.3016727, takeoff_altitude),
+LocationGlobalRelative(27.9865033, -82.3016699, takeoff_altitude),
+LocationGlobalRelative(27.9865031, -82.3016496, takeoff_altitude),
+LocationGlobalRelative(27.9867303, -82.3016523, takeoff_altitude),
+LocationGlobalRelative(27.9867303, -82.3016320, takeoff_altitude),
+LocationGlobalRelative(27.9865030, -82.3016293, takeoff_altitude),
+LocationGlobalRelative(27.9865029, -82.3016089, takeoff_altitude),
+LocationGlobalRelative(27.9867302, -82.3016116, takeoff_altitude),
+LocationGlobalRelative(27.9867301, -82.3015913, takeoff_altitude),
+LocationGlobalRelative(27.9865028, -82.3015886, takeoff_altitude),
+LocationGlobalRelative(27.9865026, -82.3015682, takeoff_altitude),
+LocationGlobalRelative(27.9867300, -82.3015710, takeoff_altitude),
 ]
 
 for i, wp in enumerate(waypoints):
@@ -309,7 +315,7 @@ else:
 
 picam2.stop()
 vehicle.close()
-logger.info("Mission End.")
 print("Mission completed.")
 exit()
 # ------------------- END OF SCRIPT -------------------
+                

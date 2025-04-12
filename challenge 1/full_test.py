@@ -212,6 +212,7 @@ def precision_land_pixel_offset():
 
 # ------------------- MAIN MISSION -------------------
 print("Starting mission...")
+vehicle.mode = VehicleMode("GUIDED")
 manual_arm()
 takeoff(takeoff_altitude)
 vehicle.airspeed = 3
