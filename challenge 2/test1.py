@@ -215,8 +215,7 @@ def precision_land_pixel_offset():
                 vehicle.mode = VehicleMode("LAND")
                 time.sleep(5)
                 print("Starting data transmission...")
-                start_time = time.time()
-                while time.time() - start_time < 30:
+                while True:
                     if vehicle.gps_0.fix_type != 6:
                          print("Error: GPS does not have RTK Fixed")
                          print("GPS STATUS: %s" % vehicle.gps_0.fix_type)
@@ -248,6 +247,7 @@ def precision_land_pixel_offset():
                         logger.info(f"Transmitting DropZone Aruco Location Data TO UGV: Lat {lat}, Lon {lon}, Alt {alt}")
                         time.sleep(1)  # Send every 1 seconds
                         print("DropZone Location Sent!")
+                        break
                         
                 logger.info("DropZone Location Has been Transmitted to UGV")
                 print("Transmission Time has Elapsed")
