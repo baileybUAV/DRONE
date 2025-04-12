@@ -245,7 +245,7 @@ def precision_land_pixel_offset():
                         telem_link.mav.send(msg)
                         print(f"Sent Aruco Location Data: Lat {lat}, Lon {lon}, Alt {alt}, VelN {velocity_north}, VelE {velocity_east}, VelD {velocity_down}")
                         logger.info(f"Transmitting DropZone Aruco Location Data TO UGV: Lat {lat}, Lon {lon}, Alt {alt}")
-                        time.sleep(3)  # Send every 1 seconds
+                        time.sleep(3)
                         print("DropZone Location Sent!")
                         break
                         
@@ -268,6 +268,7 @@ def precision_land_pixel_offset():
 
 # ------------------- MAIN MISSION -------------------
 print("Starting mission...")
+logger.info("Mission Start")
 vehicle.mode = VehicleMode("GUIDED")
 manual_arm()
 takeoff(takeoff_altitude)
@@ -327,6 +328,7 @@ else:
 picam2.stop()
 vehicle.close()
 print("Mission completed.")
+logger.info("Mission End")
 exit()
 # ------------------- END OF SCRIPT -------------------
                 
