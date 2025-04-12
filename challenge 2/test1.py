@@ -247,7 +247,7 @@ def precision_land_pixel_offset():
                         logger.info(f"Transmitting DropZone Aruco Location Data TO UGV: Lat {lat}, Lon {lon}, Alt {alt}")
                         time.sleep(1)  # Send every 1 seconds
                         print("DropZone Location Sent!")
-                        break
+                        
                 logger.info("DropZone Location Has been Transmitted to UGV")
                 print("Transmission Time has Elapsed")
                 print("Returning to Launch Point...")
