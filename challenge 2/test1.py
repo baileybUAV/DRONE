@@ -213,6 +213,7 @@ def precision_land_pixel_offset():
             else:
                 print("Reached final height. Switching to LAND.")
                 vehicle.mode = VehicleMode("LAND")
+                time.sleep(3)
                 print("Starting data transmission...")
                 start_time = time.time()
                 while time.time() - start_time < 120:
