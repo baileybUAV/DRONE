@@ -29,10 +29,10 @@ logger = logging.getLogger()
 # ------------------- CONFIG -------------------
 takeoff_altitude = 2.5  # meters
 camera_resolution = (1600, 1080)
-marker_id = 4
+marker_id = 0
 marker_size = 0.253  # meters
 descent_speed = 0.2
-final_land_height = 1.5  # meters
+final_land_height = 1.25  # meters
 fast_descent_speed = 0.2
 slow_descent_speed = 0.08
 slow_down_altitude = 2
@@ -131,16 +131,32 @@ def land():
 # ------------------- MARKER WATCHER -------------------
 def marker_watcher():
     print("Marker watcher started...")
+    frame_width = camera_resolution[0]
+    middle_left = frame_width // 4
+    middle_right = 3 * frame_width // 4
+
     while not marker_found_flag.is_set():
         img = picam2.capture_array()
         img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         corners, ids, _ = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
         if ids is not None and marker_id in ids:
-            print("MARKER FOUND! Triggering precision landing...")
-            marker_found_flag.set()
-            break
+            index = np.where(ids == marker_id)[0][0]
+            c = corners[index][0]
+            cx = int(np.mean(c[:, 0]))  # x center of marker
+
+            # Only trigger if it's in the middle column
+            if middle_left <= cx <= middle_right:
+                print("MARKER FOUND in center column! Triggering precision landing...")
+                marker_found_flag.set()
+                break
+            else:
+                print("Marker found, but NOT in center column.")
+                possible_aruco_lat = vehicle.location.global_frame.lat
+                possible_aruco_lon = vehicle.location.global_frame.lon
+                logger.info(f"Possible Aruco Location: Lat {possible_aruco_lat}, Lon {possible_aruco_lon}") 
         time.sleep(0.5)
+
 
 
 def setup_telem_connection():
@@ -192,7 +208,7 @@ def precision_land_pixel_offset():
             cx = int(np.mean(c[:, 0]))
             cy = int(np.mean(c[:, 1]))
             frame_center = (camera_resolution[0] // 2, camera_resolution[1] // 2)
-            dx = cx - frame_center[0]
+            dx = cx - frame_center[0] + 15
             dy = cy - frame_center[1] - 150  # Adjust for camera pos
             altitude = vehicle.rangefinder.distance or 10.0
             if altitude > slow_down_altitude:
