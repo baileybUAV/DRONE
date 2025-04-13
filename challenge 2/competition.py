@@ -257,7 +257,7 @@ def precision_land_pixel_offset():
                 vehicle.mode = VehicleMode("GUIDED")
                 vehicle.armed = True
                 takeoff(takeoff_altitude)
-                vehicle.simple_goto(LocationGlobalRelative(27.9866923, -82.3017261, takeoff_altitude))
+                vehicle.simple_goto(LocationGlobalRelative(27.9867265, -82.3018582, takeoff_altitude))
                 time.sleep(15)
                 vehicle.mode = VehicleMode("LAND")
                 break
@@ -278,40 +278,38 @@ watcher_thread = threading.Thread(target=marker_watcher, daemon=True)
 watcher_thread.start()
 
 waypoints = [
-LocationGlobalRelative(27.9866923, -82.3017261, takeoff_altitude),
-LocationGlobalRelative(27.9865109, -82.3017155, takeoff_altitude),
-LocationGlobalRelative(27.9865115, -82.3017423, takeoff_altitude),
-LocationGlobalRelative(27.9866926, -82.3017480, takeoff_altitude),
-LocationGlobalRelative(27.9866930, -82.3017698, takeoff_altitude),
-LocationGlobalRelative(27.9865109, -82.3017631, takeoff_altitude),
-LocationGlobalRelative(27.9865103, -82.3017895, takeoff_altitude),
-LocationGlobalRelative(27.9866933, -82.3017917, takeoff_altitude),
-LocationGlobalRelative(27.9866937, -82.3018136, takeoff_altitude),
-LocationGlobalRelative(27.9865109, -82.3018114, takeoff_altitude),
-LocationGlobalRelative(27.9865116, -82.3018332, takeoff_altitude),
-LocationGlobalRelative(27.9866940, -82.3018354, takeoff_altitude),
-LocationGlobalRelative(27.9866943, -82.3018573, takeoff_altitude),
-LocationGlobalRelative(27.9865122, -82.3018551, takeoff_altitude),
-LocationGlobalRelative(27.9865129, -82.3018770, takeoff_altitude),
-LocationGlobalRelative(27.9866947, -82.3018791, takeoff_altitude),
-LocationGlobalRelative(27.9866950, -82.3019010, takeoff_altitude),
-LocationGlobalRelative(27.9865135, -82.3018988, takeoff_altitude),
-LocationGlobalRelative(27.9865142, -82.3019207, takeoff_altitude),
-LocationGlobalRelative(27.9866954, -82.3019229, takeoff_altitude),
-LocationGlobalRelative(27.9866957, -82.3019447, takeoff_altitude),
-LocationGlobalRelative(27.9865148, -82.3019426, takeoff_altitude),
-LocationGlobalRelative(27.9865155, -82.3019644, takeoff_altitude),
-LocationGlobalRelative(27.9866961, -82.3019666, takeoff_altitude),
-LocationGlobalRelative(27.9866964, -82.3019885, takeoff_altitude),
-LocationGlobalRelative(27.9865161, -82.3019863, takeoff_altitude),
-LocationGlobalRelative(27.9865168, -82.3020082, takeoff_altitude),
-LocationGlobalRelative(27.9866967, -82.3020103, takeoff_altitude),
-LocationGlobalRelative(27.9866971, -82.3020322, takeoff_altitude),
-LocationGlobalRelative(27.9865174, -82.3020300, takeoff_altitude),
-LocationGlobalRelative(27.9865204, -82.3020588, takeoff_altitude),
-LocationGlobalRelative(27.9866974, -82.3020541, takeoff_altitude),
-LocationGlobalRelative(27.9866978, -82.3020759, takeoff_altitude),
-LocationGlobalRelative(27.9865215, -82.3020823, takeoff_altitude),
+LocationGlobalRelative(27.9867265, -82.3018582, takeoff_altitude),
+LocationGlobalRelative(27.9865179, -82.3018557, takeoff_altitude),
+LocationGlobalRelative(27.9865177, -82.3018379, takeoff_altitude),
+LocationGlobalRelative(27.9867267, -82.3018404, takeoff_altitude),
+LocationGlobalRelative(27.9867269, -82.3018226, takeoff_altitude),
+LocationGlobalRelative(27.9865175, -82.3018201, takeoff_altitude),
+LocationGlobalRelative(27.9865173, -82.3018023, takeoff_altitude),
+LocationGlobalRelative(27.9867272, -82.3018048, takeoff_altitude),
+LocationGlobalRelative(27.9867274, -82.3017870, takeoff_altitude),
+LocationGlobalRelative(27.9865172, -82.3017845, takeoff_altitude),
+LocationGlobalRelative(27.9865170, -82.3017667, takeoff_altitude),
+LocationGlobalRelative(27.9867276, -82.3017692, takeoff_altitude),
+LocationGlobalRelative(27.9867278, -82.3017515, takeoff_altitude),
+LocationGlobalRelative(27.9865168, -82.3017489, takeoff_altitude),
+LocationGlobalRelative(27.9865166, -82.3017311, takeoff_altitude),
+LocationGlobalRelative(27.9867281, -82.3017337, takeoff_altitude),
+LocationGlobalRelative(27.9867283, -82.3017159, takeoff_altitude),
+LocationGlobalRelative(27.9865164, -82.3017133, takeoff_altitude),
+LocationGlobalRelative(27.9865162, -82.3016955, takeoff_altitude),
+LocationGlobalRelative(27.9867285, -82.3016981, takeoff_altitude),
+LocationGlobalRelative(27.9867287, -82.3016803, takeoff_altitude),
+LocationGlobalRelative(27.9865160, -82.3016777, takeoff_altitude),
+LocationGlobalRelative(27.9865158, -82.3016599, takeoff_altitude),
+LocationGlobalRelative(27.9867290, -82.3016625, takeoff_altitude),
+LocationGlobalRelative(27.9867292, -82.3016447, takeoff_altitude),
+LocationGlobalRelative(27.9865157, -82.3016421, takeoff_altitude),
+LocationGlobalRelative(27.9865155, -82.3016243, takeoff_altitude),
+LocationGlobalRelative(27.9867294, -82.3016269, takeoff_altitude),
+LocationGlobalRelative(27.9867297, -82.3016091, takeoff_altitude),
+LocationGlobalRelative(27.9865153, -82.3016065, takeoff_altitude),
+LocationGlobalRelative(27.9865151, -82.3015888, takeoff_altitude),
+LocationGlobalRelative(27.9867299, -82.3015913, takeoff_altitude),
 ]
 
 for i, wp in enumerate(waypoints):
