@@ -152,8 +152,9 @@ def marker_watcher():
                 break
             else:
                 print("Marker found, but NOT in center column.")
-                maybe_aruco_lat = vehicle.location.global_frame.lat
-                maybe_aruco_lon = vehicle.location.global_frame.lon
+                possible_aruco_lat = vehicle.location.global_frame.lat
+                possible_aruco_lon = vehicle.location.global_frame.lon
+                logger.info(f"Possible Aruco Location: Lat {possible_aruco_lat}, Lon {possible_aruco_lon}") 
         time.sleep(0.5)
 
 
@@ -346,7 +347,6 @@ if marker_found_flag.is_set():
     precision_land_pixel_offset()
 else:
     print("No marker detected during mission. Proceeding to normal landing.")
-    
     land()
 
 picam2.stop()
