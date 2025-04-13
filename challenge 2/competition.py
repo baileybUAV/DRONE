@@ -243,6 +243,7 @@ def precision_land_pixel_offset():
                                 covariance_matrix)
 
                         telem_link.mav.send(msg)
+                        print("GPS STATUS: %s" % vehicle.gps_0.fix_type)
                         print(f"Sent Aruco Location Data: Lat {lat}, Lon {lon}, Alt {alt}, VelN {velocity_north}, VelE {velocity_east}, VelD {velocity_down}")
                         logger.info(f"Transmitting DropZone Aruco Location Data TO UGV: Lat {lat}, Lon {lon}, Alt {alt}")
                         time.sleep(3)
