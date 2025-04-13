@@ -132,9 +132,9 @@ def land():
 def marker_watcher():
     print("Marker watcher started...")
     frame_width = camera_resolution[0]
-    middle_left = frame_width // 3
-    middle_right = 2 * frame_width // 3
-
+    middle_left = frame_width // 4
+    middle_right = 3 * frame_width // 4
+    
     while not marker_found_flag.is_set():
         img = picam2.capture_array()
         img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
