@@ -258,7 +258,7 @@ def precision_land_pixel_offset():
                 vehicle.mode = VehicleMode("GUIDED")
                 vehicle.armed = True
                 takeoff(takeoff_altitude)
-                vehicle.simple_goto(LocationGlobalRelative(27.9867265, -82.3018582, takeoff_altitude))
+                vehicle.simple_goto(LocationGlobalRelative(27.9867299, -82.3015913, takeoff_altitude))
                 time.sleep(15)
                 vehicle.mode = VehicleMode("LAND")
                 break
