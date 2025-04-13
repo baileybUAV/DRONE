@@ -239,8 +239,43 @@ def precision_land_pixel_offset():
                     if vehicle.gps_0.fix_type != 6:
                          print("\nError: GPS does not have RTK Fixed")
                          print("GPS STATUS: %s" % vehicle.gps_0.fix_type)
+                         sent = False
                     else:
-                        #LOG LOCATION
+                        for _ in range(5):
+                            #LOG LOCATION
+                            lat = vehicle.location.global_frame.lat
+                            lon = vehicle.location.global_frame.lon
+                            alt = vehicle.location.global_frame.alt
+                            rel_alt = vehicle.location.global_relative_frame.alt
+                            velocity_north = vehicle.velocity[0]
+                            velocity_east = vehicle.velocity[1]
+                            velocity_down = vehicle.velocity[2]
+                            covariance_matrix = np.full((36,), float('nan'), dtype=np.float32)
+                        
+                            msg = telem_link.mav.global_position_int_cov_encode(
+                                int(time.time() * 1e6),
+                                mavutil.mavlink.MAV_ESTIMATOR_TYPE_GPS,
+                                    int(lat * 1e7),
+                                    int(lon * 1e7),
+                                    int(alt * 1000),
+                                    int(rel_alt * 1000),
+                                    float(velocity_north),
+                                    float(velocity_east),
+                                    float(velocity_down),
+                                    covariance_matrix)
+
+                            telem_link.mav.send(msg)
+                            print("GPS STATUS: %s" % vehicle.gps_0.fix_type)
+                            print(f"Sent Aruco Location Data: Lat {lat}, Lon {lon}, Alt {alt}, VelN {velocity_north}, VelE {velocity_east}, VelD {velocity_down}")
+                            logger.info(f"Transmitting DropZone Aruco Location Data TO UGV: Lat {lat}, Lon {lon}, Alt {alt}")
+                            print("DropZone Location Sent!")
+                            time.sleep(1)
+                        sent = True
+                        break
+                         
+                if sent == False:
+                    for _ in range(5):
+                         #LOG LOCATION
                         lat = vehicle.location.global_frame.lat
                         lon = vehicle.location.global_frame.lon
                         alt = vehicle.location.global_frame.alt
@@ -266,10 +301,9 @@ def precision_land_pixel_offset():
                         print("GPS STATUS: %s" % vehicle.gps_0.fix_type)
                         print(f"Sent Aruco Location Data: Lat {lat}, Lon {lon}, Alt {alt}, VelN {velocity_north}, VelE {velocity_east}, VelD {velocity_down}")
                         logger.info(f"Transmitting DropZone Aruco Location Data TO UGV: Lat {lat}, Lon {lon}, Alt {alt}")
-                        time.sleep(3)
                         print("DropZone Location Sent!")
-                        break
-                        
+                        time.sleep(1)
+
                 logger.info("DropZone Location Has been Transmitted to UGV")
                 time.sleep(1)
                 print("Transmission Time has Elapsed")
