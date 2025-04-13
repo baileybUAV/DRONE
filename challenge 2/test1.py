@@ -29,7 +29,7 @@ logger = logging.getLogger()
 # ------------------- CONFIG -------------------
 takeoff_altitude = 2.5  # meters
 camera_resolution = (1600, 1080)
-marker_id = 3
+marker_id = 4
 marker_size = 0.253  # meters
 descent_speed = 0.2
 final_land_height = 1.5  # meters
@@ -192,7 +192,7 @@ def precision_land_pixel_offset():
             cx = int(np.mean(c[:, 0]))
             cy = int(np.mean(c[:, 1]))
             frame_center = (camera_resolution[0] // 2, camera_resolution[1] // 2)
-            dx = cx - frame_center[0] 
+            dx = cx - frame_center[0] - 50
             dy = cy - frame_center[1] - 150  # Adjust for camera pos
             altitude = vehicle.rangefinder.distance or 10.0
             if altitude > slow_down_altitude:
