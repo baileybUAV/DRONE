@@ -215,9 +215,10 @@ def precision_land_pixel_offset():
                 vehicle.mode = VehicleMode("LAND")
                 time.sleep(5)
                 print("Starting data transmission...")
-                while True:
+                start_time = time.time()
+                while time.time() - start_time < 120:
                     if vehicle.gps_0.fix_type != 6:
-                         print("Error: GPS does not have RTK Fixed")
+                         print("\nError: GPS does not have RTK Fixed")
                          print("GPS STATUS: %s" % vehicle.gps_0.fix_type)
                     else:
                         #LOG LOCATION
@@ -258,7 +259,7 @@ def precision_land_pixel_offset():
                 vehicle.mode = VehicleMode("GUIDED")
                 vehicle.armed = True
                 takeoff(takeoff_altitude)
-                vehicle.simple_goto(LocationGlobalRelative(27.9867299, -82.3015913, takeoff_altitude))
+                vehicle.simple_goto(LocationGlobalRelative(27.9867283, -82.3017159, takeoff_altitude))
                 time.sleep(15)
                 vehicle.mode = VehicleMode("LAND")
                 break
