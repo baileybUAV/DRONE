@@ -171,11 +171,11 @@ def send_ned_velocity(vx, vy, vz):
 
 def precision_land_pixel_offset():
     print("Beginning precision landing...")
-    aruco_lat = vehicle.location.global_frame.lat
-    aruco_lon = vehicle.location.global_frame.lon
     capture_photo(0)
     send_ned_velocity(-1, 0, -1)
     time.sleep(2)
+    aruco_lat = vehicle.location.global_frame.lat
+    aruco_lon = vehicle.location.global_frame.lon
     capture_photo(1)
     while vehicle.armed:
         img = picam2.capture_array()
