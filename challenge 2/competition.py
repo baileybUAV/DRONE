@@ -171,12 +171,15 @@ def send_ned_velocity(vx, vy, vz):
 
 def precision_land_pixel_offset():
     print("Beginning precision landing...")
+    aruco_lat = vehicle.location.global_frame.lat
+    aruco_lon = vehicle.location.global_frame.lon
     capture_photo(0)
     send_ned_velocity(-1, 0, -1)
     time.sleep(2)
-    aruco_lat = vehicle.location.global_frame.lat
-    aruco_lon = vehicle.location.global_frame.lon
+    aruco_lat2 = vehicle.location.global_frame.lat
+    aruco_lon2 = vehicle.location.global_frame.lon
     capture_photo(1)
+    search_time = time.time()
     while vehicle.armed:
         img = picam2.capture_array()
         img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
@@ -263,9 +266,14 @@ def precision_land_pixel_offset():
                 time.sleep(15)
                 vehicle.mode = VehicleMode("LAND")
                 break
-        else:
+        elif time.time() - search_time < 10:
             print("Marker Lost. Returning to last known location")
             vehicle.simple_goto(LocationGlobalRelative(aruco_lat, aruco_lon, 4))
+            time.sleep(1)
+        else:
+            print("Marker Lost. Returning to second last known location")
+            vehicle.simple_goto(LocationGlobalRelative(aruco_lat2, aruco_lon2, 4))
+            time.sleep(1)
         time.sleep(0.1)
 
 # ------------------- MAIN MISSION -------------------

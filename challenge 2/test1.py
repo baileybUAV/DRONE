@@ -131,16 +131,29 @@ def land():
 # ------------------- MARKER WATCHER -------------------
 def marker_watcher():
     print("Marker watcher started...")
+    frame_width = camera_resolution[0]
+    middle_left = frame_width // 3
+    middle_right = 2 * frame_width // 3
+
     while not marker_found_flag.is_set():
         img = picam2.capture_array()
         img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         corners, ids, _ = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
         if ids is not None and marker_id in ids:
-            print("MARKER FOUND! Triggering precision landing...")
-            marker_found_flag.set()
-            break
+            index = np.where(ids == marker_id)[0][0]
+            c = corners[index][0]
+            cx = int(np.mean(c[:, 0]))  # x center of marker
+
+            # Only trigger if it's in the middle column
+            if middle_left <= cx <= middle_right:
+                print("MARKER FOUND in center column! Triggering precision landing...")
+                marker_found_flag.set()
+                break
+            else:
+                print("Marker found, but NOT in center column.")
         time.sleep(0.5)
+
 
 
 def setup_telem_connection():
@@ -269,9 +282,11 @@ def precision_land_pixel_offset():
         elif time.time() - search_time < 10:
             print("Marker Lost. Returning to last known location")
             vehicle.simple_goto(LocationGlobalRelative(aruco_lat, aruco_lon, 4))
+            time.sleep(1)
         else:
             print("Marker Lost. Returning to second last known location")
             vehicle.simple_goto(LocationGlobalRelative(aruco_lat2, aruco_lon2, 4))
+            time.sleep(1)
         time.sleep(0.1)
 
 # ------------------- MAIN MISSION -------------------
