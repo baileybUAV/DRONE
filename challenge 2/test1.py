@@ -134,7 +134,7 @@ def marker_watcher():
     frame_width = camera_resolution[0]
     middle_left = frame_width // 4
     middle_right = 3 * frame_width // 4
-    
+
     while not marker_found_flag.is_set():
         img = picam2.capture_array()
         img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
@@ -152,6 +152,8 @@ def marker_watcher():
                 break
             else:
                 print("Marker found, but NOT in center column.")
+                maybe_aruco_lat = vehicle.location.global_frame.lat
+                maybe_aruco_lon = vehicle.location.global_frame.lon
         time.sleep(0.5)
 
 
@@ -205,7 +207,7 @@ def precision_land_pixel_offset():
             cx = int(np.mean(c[:, 0]))
             cy = int(np.mean(c[:, 1]))
             frame_center = (camera_resolution[0] // 2, camera_resolution[1] // 2)
-            dx = cx - frame_center[0] + 50
+            dx = cx - frame_center[0] + 30
             dy = cy - frame_center[1] - 150  # Adjust for camera pos
             altitude = vehicle.rangefinder.distance or 10.0
             if altitude > slow_down_altitude:
@@ -344,6 +346,7 @@ if marker_found_flag.is_set():
     precision_land_pixel_offset()
 else:
     print("No marker detected during mission. Proceeding to normal landing.")
+    
     land()
 
 picam2.stop()
