@@ -34,7 +34,7 @@ marker_size = 0.253  # meters
 descent_speed = 0.2
 final_land_height = 1.5  # meters
 fast_descent_speed = 0.2
-slow_descent_speed = 0.05
+slow_descent_speed = 0.08
 slow_down_altitude = 2
 far_center_threshold = 30
 near_center_threshold = 10
@@ -190,7 +190,7 @@ def precision_land_pixel_offset():
             cy = int(np.mean(c[:, 1]))
             frame_center = (camera_resolution[0] // 2, camera_resolution[1] // 2)
             dx = cx - frame_center[0]
-            dy = cy - frame_center[1]   # Adjust for camera pos
+            dy = cy - frame_center[1] - 150  # Adjust for camera pos
             altitude = vehicle.rangefinder.distance or 10.0
             if altitude > slow_down_altitude:
                 descent_vz = fast_descent_speed
