@@ -1,3 +1,9 @@
+                
+
+
+#BEST CODE 
+
+
 from dronekit import connect, VehicleMode, LocationGlobalRelative
 from pymavlink import mavutil
 from geopy.distance import distance as geopy_distance
@@ -9,26 +15,8 @@ import time
 import threading
 from picamera2 import Picamera2
 import argparse
-import logging
+import logging 
 
-
-# ------------------- CONFIG -------------------
-takeoff_altitude = 5  # meters
-camera_resolution = (1280, 720)
-marker_id = 0
-marker_size = 0.253  # meters
-descent_speed = 0.2
-final_land_height = 1.0
-fast_descent_speed = 0.30
-slow_descent_speed = 0.12
-slow_down_altitude = 3.0
-far_center_threshold = 50
-near_center_threshold = 15
-far_Kp = 0.0025
-near_Kp = 0.001
-marker_found_flag = threading.Event()
-
-# ------------------- LOGGING SETUP -------------------
 logging.basicConfig(
     filename='drone_mission_log.txt',
     filemode='w',
@@ -38,6 +26,22 @@ logging.basicConfig(
 )
 logger = logging.getLogger()
 
+# ------------------- CONFIG -------------------
+takeoff_altitude = 2.5  # meters
+camera_resolution = (1600, 1080)
+marker_id = 0
+marker_size = 0.253  # meters
+descent_speed = 0.2
+final_land_height = 1.25  # meters
+fast_descent_speed = 0.2
+slow_descent_speed = 0.08
+slow_down_altitude = 2
+far_center_threshold = 30
+near_center_threshold = 10
+center_threshold = 10
+far_Kp = 0.0015
+near_Kp = 0.001
+marker_found_flag = threading.Event()
 
 # ------------------- CONNECT -------------------
 def connectMyCopter():
@@ -66,6 +70,16 @@ camera_distortion = np.loadtxt(calib_path + 'cameraDistortion.txt', delimiter=',
 aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_6X6_250)
 parameters = aruco.DetectorParameters()
 
+
+def capture_photo(index=None):
+    img = picam2.capture_array()
+    img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+    timestamp = time.strftime("%Y%m%d_%H%M%S")
+    suffix = f"_{index}" if index is not None else ""
+    photo_path = f"aruco_photo_{timestamp}{suffix}.jpg"
+    cv2.imwrite(photo_path, img)
+    print(f"Photo captured and saved at: {photo_path}")
+
 # ------------------- FLIGHT FUNCTIONS -------------------
 def manual_arm():
     print("Pre-arm checks...")
@@ -84,7 +98,7 @@ def takeoff(aTargetAltitude):
     while True:
         alt = vehicle.location.global_relative_frame.alt
         print(f"Altitude: {alt:.2f}")
-        if alt >= aTargetAltitude * 0.85:
+        if alt >= aTargetAltitude * 0.90:
             print("Reached target altitude")
             break
         time.sleep(1)
@@ -101,7 +115,7 @@ def goto_waypoint(waypoint, num):
         current = vehicle.location.global_relative_frame
         dist = distance_to(waypoint, current)
         print(f"Distance to waypoint {num}: {dist:.2f}m")
-        if dist < 0.5 or marker_found_flag.is_set():
+        if dist < 1 or marker_found_flag.is_set():
             break
         time.sleep(1)
     if marker_found_flag.is_set():
@@ -124,25 +138,12 @@ def marker_watcher():
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         corners, ids, _ = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
         if ids is not None and marker_id in ids:
-            print("DropZone Found! Triggering precision landing...")
-            #LOG DETECTION
-            logger.info("DropZone Found! Triggering precision landing...")
+            print("DropZone FOUND! Triggering precision landing...")
             marker_found_flag.set()
             break
         time.sleep(0.5)
 
 
-def setup_telem_connection():
-    telem_port = "/dev/ttyUSB0"  # USB telemetry module
-    baud_rate = 57600  # Ensure the correct baud rate
-    
-    print("Connecting to telemetry module for Pi-to-Pi communication...")
-    telem_link = mavutil.mavlink_connection(telem_port, baud=baud_rate)
-    print("Telemetry link established!")
-    return telem_link
-
-
-telem_link = setup_telem_connection()
 
 # ------------------- PRECISION LANDING -------------------
 def send_ned_velocity(vx, vy, vz):
@@ -160,68 +161,65 @@ def send_ned_velocity(vx, vy, vz):
 
 def precision_land_pixel_offset():
     print("Beginning precision landing...")
-
-    # Stop residual motion after detection
-    for _ in range(10):  # Run for ~1 second
-        vn, ve, _ = vehicle.velocity
-        cancel_vx = -vn * 0.5
-        cancel_vy = -ve * 0.5
-        print(f"Canceling drift: vx={cancel_vx:.2f}, vy={cancel_vy:.2f}")
-        send_ned_velocity(cancel_vx, cancel_vy, 0)
-        time.sleep(0.1)
-
+    aruco_lat = vehicle.location.global_frame.lat
+    aruco_lon = vehicle.location.global_frame.lon
+    capture_photo(0)
+    send_ned_velocity(-1, 0, -1)
+    time.sleep(2)
+    aruco_lat2 = vehicle.location.global_frame.lat
+    aruco_lon2 = vehicle.location.global_frame.lon
+    capture_photo(1)
+    search_time = time.time()
     while vehicle.armed:
         img = picam2.capture_array()
         img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
         img = cv2.undistort(img, camera_matrix, camera_distortion)
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         corners, ids, _ = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
-
         if ids is not None and marker_id in ids:
             index = np.where(ids == marker_id)[0][0]
             c = corners[index][0]
             cx = int(np.mean(c[:, 0]))
             cy = int(np.mean(c[:, 1]))
             frame_center = (camera_resolution[0] // 2, camera_resolution[1] // 2)
-            dx = cx - frame_center[0]
-            dy = cy - frame_center[1]
-
-            altitude = vehicle.rangefinder.distance
-            if altitude is None or altitude <= 0:
-                print("ERROR: LiDAR data invalid. Aborting landing.")
-                break  # Exit landing loop safely
-
+            dx = cx - frame_center[0] + 15
+            dy = cy - frame_center[1] - 150  # Adjust for camera pos
+            altitude = vehicle.rangefinder.distance or 10.0
             if altitude > slow_down_altitude:
-                descent_vz = fast_descent_speed
                 center_threshold = far_center_threshold
                 Kp = far_Kp
             else:
-                descent_vz = slow_descent_speed
                 center_threshold = near_center_threshold
                 Kp = near_Kp
-
-            if altitude > final_land_height:
+            while True:
                 if abs(dx) < center_threshold and abs(dy) < center_threshold:
-                    send_ned_velocity(0, 0, descent_vz)
+                    print("Marker centered. Saving Location...")
+                    send_ned_velocity(0, 0, 0)
+                    aruco_lat = vehicle.location.global_frame.lat
+                    aruco_lon = vehicle.location.global_frame.lon
+                    logger.info(f"DropZone Location: Lat {aruco_lat}, Lon {aruco_lon}")
+                    break
                 else:
+                    print("Centering marker...")
                     vx = -dy * Kp
                     vy = dx * Kp
-                    send_ned_velocity(vx, vy, descent_vz)
-            else:
-                print("Reached final height. Switching to LAND.")
-                vehicle.mode = VehicleMode("LAND")
-                break
+                    send_ned_velocity(vx, vy, 0.01)       
+               
+        elif time.time() - search_time < 10:
+            print("Marker Lost. Returning to last known location")
+            vehicle.simple_goto(LocationGlobalRelative(aruco_lat, aruco_lon, 4))
+            time.sleep(1)
         else:
-            send_ned_velocity(0, 0, 0)
-
+            print("Marker Lost. Returning to second last known location")
+            vehicle.simple_goto(LocationGlobalRelative(aruco_lat2, aruco_lon2, 4))
+            time.sleep(1)
         time.sleep(0.1)
 
 # ------------------- MAIN MISSION -------------------
 print("Starting mission...")
-logger.info("Starting mission...")
+logger.info("Mission Start")
+vehicle.mode = VehicleMode("GUIDED")
 manual_arm()
-
-
 takeoff(takeoff_altitude)
 
 
@@ -229,10 +227,38 @@ watcher_thread = threading.Thread(target=marker_watcher, daemon=True)
 watcher_thread.start()
 
 waypoints = [
-    LocationGlobalRelative(27.9865908,-82.3017772, 6),
-    LocationGlobalRelative(27.9865914,-82.3016015, 6),
-    LocationGlobalRelative(27.9866785,-82.3015860, 6),
-    LocationGlobalRelative(27.9866660,-82.3017711, 6)
+LocationGlobalRelative(27.9867265, -82.3018582, takeoff_altitude),
+LocationGlobalRelative(27.9865179, -82.3018557, takeoff_altitude),
+LocationGlobalRelative(27.9865177, -82.3018379, takeoff_altitude),
+LocationGlobalRelative(27.9867267, -82.3018404, takeoff_altitude),
+LocationGlobalRelative(27.9867269, -82.3018226, takeoff_altitude),
+LocationGlobalRelative(27.9865175, -82.3018201, takeoff_altitude),
+LocationGlobalRelative(27.9865173, -82.3018023, takeoff_altitude),
+LocationGlobalRelative(27.9867272, -82.3018048, takeoff_altitude),
+LocationGlobalRelative(27.9867274, -82.3017870, takeoff_altitude),
+LocationGlobalRelative(27.9865172, -82.3017845, takeoff_altitude),
+LocationGlobalRelative(27.9865170, -82.3017667, takeoff_altitude),
+LocationGlobalRelative(27.9867276, -82.3017692, takeoff_altitude),
+LocationGlobalRelative(27.9867278, -82.3017515, takeoff_altitude),
+LocationGlobalRelative(27.9865168, -82.3017489, takeoff_altitude),
+LocationGlobalRelative(27.9865166, -82.3017311, takeoff_altitude),
+LocationGlobalRelative(27.9867281, -82.3017337, takeoff_altitude),
+LocationGlobalRelative(27.9867283, -82.3017159, takeoff_altitude),
+LocationGlobalRelative(27.9865164, -82.3017133, takeoff_altitude),
+LocationGlobalRelative(27.9865162, -82.3016955, takeoff_altitude),
+LocationGlobalRelative(27.9867285, -82.3016981, takeoff_altitude),
+LocationGlobalRelative(27.9867287, -82.3016803, takeoff_altitude),
+LocationGlobalRelative(27.9865160, -82.3016777, takeoff_altitude),
+LocationGlobalRelative(27.9865158, -82.3016599, takeoff_altitude),
+LocationGlobalRelative(27.9867290, -82.3016625, takeoff_altitude),
+LocationGlobalRelative(27.9867292, -82.3016447, takeoff_altitude),
+LocationGlobalRelative(27.9865157, -82.3016421, takeoff_altitude),
+LocationGlobalRelative(27.9865155, -82.3016243, takeoff_altitude),
+LocationGlobalRelative(27.9867294, -82.3016269, takeoff_altitude),
+LocationGlobalRelative(27.9867297, -82.3016091, takeoff_altitude),
+LocationGlobalRelative(27.9865153, -82.3016065, takeoff_altitude),
+LocationGlobalRelative(27.9865151, -82.3015888, takeoff_altitude),
+LocationGlobalRelative(27.9867299, -82.3015913, takeoff_altitude),
 ]
 
 for i, wp in enumerate(waypoints):
@@ -246,12 +272,10 @@ else:
     print("No marker detected during mission. Proceeding to normal landing.")
     land()
 
-
-logger.info("Mission completed.")
-logger.info("Logging Ended.")
-print("Mission completed.")
-
 picam2.stop()
-vehicle.close() 
+vehicle.close()
+print("Mission completed.")
+logger.info("Mission End")
 exit()
 # ------------------- END OF SCRIPT -------------------
+                
