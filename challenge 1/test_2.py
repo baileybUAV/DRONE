@@ -24,7 +24,7 @@ logging.basicConfig(
 logger = logging.getLogger()
 
 # ------------------- CONFIG -------------------
-takeoff_altitude = 7  # meters
+takeoff_altitude = 6  # meters
 camera_resolution = (1600, 1080)
 marker_id = 3
 marker_size = 0.253  # meters
@@ -183,7 +183,7 @@ for i, wp in enumerate(waypoints):
     if marker_found_flag.is_set():
         break
 
-
+vehicle.mode = VehicleMode("LAND")
 picam2.stop()
 vehicle.close()
 print("Mission completed.")
