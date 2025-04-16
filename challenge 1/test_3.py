@@ -24,7 +24,7 @@ logging.basicConfig(
 logger = logging.getLogger()
 
 # ------------------- CONFIG -------------------
-takeoff_altitude = 5  # meters
+takeoff_altitude = 6  # meters
 camera_resolution = (1600, 1080)
 marker_id = 3
 marker_size = 0.253  # meters
@@ -97,7 +97,7 @@ def distance_to(target_location, current_location):
 
 def goto_waypoint(waypoint, num):
     print(f"Going to waypoint {num}...")
-    vehicle.simple_goto(waypoint, airspeed = 9)
+    vehicle.simple_goto(waypoint, airspeed = 10)
     while True:
         current = vehicle.location.global_relative_frame
         dist = distance_to(waypoint, current)
