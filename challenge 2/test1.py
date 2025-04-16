@@ -109,7 +109,7 @@ def distance_to(target_location, current_location):
 
 def goto_waypoint(waypoint, num):
     print(f"Going to waypoint {num}...")
-    vehicle.simple_goto(waypoint)
+    vehicle.simple_goto(waypoint, airspeed = 2.5)
     while True:
         current = vehicle.location.global_relative_frame
         dist = distance_to(waypoint, current)
@@ -230,9 +230,8 @@ def precision_land_pixel_offset():
                     vy = dx * Kp
                     send_ned_velocity(vx, vy, 0.01)
             else:
-                print("Reached final height. Switching to LAND.")
-                vehicle.mode = VehicleMode("LAND")
-                time.sleep(5)
+                print("Reached final height. Switching to LOITER.")
+                vehicle.mode = VehicleMode("LOITER")
                 print("Starting data transmission...")
                 start_time = time.time()
                 while time.time() - start_time < 120:
