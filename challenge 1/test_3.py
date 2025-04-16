@@ -97,7 +97,7 @@ def distance_to(target_location, current_location):
 
 def goto_waypoint(waypoint, num):
     print(f"Going to waypoint {num}...")
-    vehicle.simple_goto(waypoint,airspeed=8)
+    vehicle.simple_goto(waypoint, airspeed = 9)
     while True:
         current = vehicle.location.global_relative_frame
         dist = distance_to(waypoint, current)
