@@ -97,7 +97,7 @@ def distance_to(target_location, current_location):
 
 def goto_waypoint(waypoint, num):
     print(f"Going to waypoint {num}...")
-    vehicle.simple_goto(waypoint,airspeed=6)
+    vehicle.simple_goto(waypoint,airspeed=7)
     while True:
         current = vehicle.location.global_relative_frame
         dist = distance_to(waypoint, current)
@@ -126,6 +126,7 @@ def marker_watcher():
         corners, ids, _ = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
         if ids is not None and marker_id in ids:
             print("DropZone FOUND! Triggering precision landing...")
+            marker_found_flag.set()
             aruco_lat = vehicle.location.global_frame.lat
             aruco_lon = vehicle.location.global_frame.lon
             print(f"DropZone Location: Lat {aruco_lat}, Lon {aruco_lon}")
@@ -172,11 +173,6 @@ for i, wp in enumerate(waypoints):
     if marker_found_flag.is_set():
         break
 
-if marker_found_flag.is_set():
-    precision_land_pixel_offset()
-else:
-    print("No marker detected during mission. Proceeding to normal landing.")
-    land()
 
 picam2.stop()
 vehicle.close()
