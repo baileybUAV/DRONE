@@ -24,7 +24,7 @@ logging.basicConfig(
 logger = logging.getLogger()
 
 # ------------------- CONFIG -------------------
-takeoff_altitude = 4  # meters
+takeoff_altitude = 5  # meters
 camera_resolution = (1600, 1080)
 marker_id = 0
 marker_size = 0.253  # meters
@@ -141,7 +141,7 @@ def marker_watcher():
 # ------------------- MAIN MISSION -------------------
 print("Starting mission...")
 logger.info("Mission Start")
-vehicle.mode = VehicleMode("AUTO")
+vehicle.mode = VehicleMode("GUIDED")
 manual_arm()
 takeoff(takeoff_altitude)
 
