@@ -207,6 +207,7 @@ def precision_land_pixel_offset():
         time.sleep(0.1)
 
 # ------------------- MAIN MISSION -------------------
+vehicle.parameters['LAND_SPEED'] = 50
 print("Starting mission...")
 logger.info("Mission Start")
 vehicle.mode = VehicleMode("GUIDED")
