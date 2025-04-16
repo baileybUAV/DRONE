@@ -24,7 +24,7 @@ logging.basicConfig(
 logger = logging.getLogger()
 
 # ------------------- CONFIG -------------------
-takeoff_altitude = 5  # meters
+takeoff_altitude = 6  # meters
 camera_resolution = (1600, 1080)
 marker_id = 3
 marker_size = 0.253  # meters
@@ -97,7 +97,7 @@ def distance_to(target_location, current_location):
 
 def goto_waypoint(waypoint, num):
     print(f"Going to waypoint {num}...")
-    vehicle.simple_goto(waypoint,airspeed=8)
+    vehicle.simple_goto(waypoint, airspeed = 10)
     while True:
         current = vehicle.location.global_relative_frame
         dist = distance_to(waypoint, current)
@@ -150,22 +150,15 @@ watcher_thread = threading.Thread(target=marker_watcher, daemon=True)
 watcher_thread.start()
 
 waypoints = [
-LocationGlobalRelative(27.9867265, -82.3018582, takeoff_altitude),
-LocationGlobalRelative(27.9865177, -82.3018379, takeoff_altitude),
-LocationGlobalRelative(27.9867269, -82.3018226, takeoff_altitude),
-LocationGlobalRelative(27.9865173, -82.3018023, takeoff_altitude),
-LocationGlobalRelative(27.9867274, -82.3017870, takeoff_altitude),
-LocationGlobalRelative(27.9865170, -82.3017667, takeoff_altitude),
-LocationGlobalRelative(27.9867278, -82.3017515, takeoff_altitude),
-LocationGlobalRelative(27.9865166, -82.3017311, takeoff_altitude),
-LocationGlobalRelative(27.9867283, -82.3017159, takeoff_altitude),
-LocationGlobalRelative(27.9865162, -82.3016955, takeoff_altitude),
-LocationGlobalRelative(27.9867287, -82.3016803, takeoff_altitude),
-LocationGlobalRelative(27.9865158, -82.3016599, takeoff_altitude),
-LocationGlobalRelative(27.9867292, -82.3016447, takeoff_altitude),
-LocationGlobalRelative(27.9865155, -82.3016243, takeoff_altitude),
-LocationGlobalRelative(27.9867297, -82.3016091, takeoff_altitude),
-LocationGlobalRelative(27.9865151, -82.3015888, takeoff_altitude),
+LocationGlobalRelative(27.9867282, -82.3015834, takeoff_altitude),
+LocationGlobalRelative(27.9866967, -82.3018654, takeoff_altitude),
+LocationGlobalRelative(27.9866740, -82.3015834, takeoff_altitude),
+LocationGlobalRelative(27.9866425, -82.3018649, takeoff_altitude),
+LocationGlobalRelative(27.9866199, -82.3015834, takeoff_altitude),
+LocationGlobalRelative(27.9865884, -82.3018643, takeoff_altitude),
+LocationGlobalRelative(27.9865657, -82.3015834, takeoff_altitude),
+LocationGlobalRelative(27.9865342, -82.3018638, takeoff_altitude),
+LocationGlobalRelative(27.9865239, -82.3015901, takeoff_altitude),
 ]
 
 for i, wp in enumerate(waypoints):
