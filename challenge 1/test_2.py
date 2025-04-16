@@ -140,8 +140,8 @@ def marker_watcher():
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         corners, ids, _ = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
         if ids is not None and marker_id in ids:
-            print("DropZone FOUND! Triggering precision landing...")
-            send_ned_velocity(-1,0,-1.75)
+            print("DropZone FOUND! Triggering landing...")
+            send_ned_velocity(-1,0,1.75)
             time.sleep(1)
             marker_found_flag.set()
             aruco_lat = vehicle.location.global_frame.lat
