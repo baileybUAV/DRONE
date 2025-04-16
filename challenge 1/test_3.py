@@ -26,7 +26,7 @@ logger = logging.getLogger()
 # ------------------- CONFIG -------------------
 takeoff_altitude = 5  # meters
 camera_resolution = (1600, 1080)
-marker_id = 0
+marker_id = 3
 marker_size = 0.253  # meters
 marker_found_flag = threading.Event()
 
