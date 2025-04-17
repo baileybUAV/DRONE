@@ -151,7 +151,7 @@ def marker_watcher():
             logger.info(f"DropZone Location: Lat {aruco_lat}, Lon {aruco_lon}")
             vehicle.mode = VehicleMode("LAND")
             break
-        time.sleep(0.5)
+        time.sleep(0.1)
 
 
 
