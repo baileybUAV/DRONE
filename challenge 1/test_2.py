@@ -85,7 +85,7 @@ def takeoff(aTargetAltitude):
     while True:
         alt = vehicle.location.global_relative_frame.alt
         print(f"Altitude: {alt:.2f}")
-        if alt >= aTargetAltitude * 0.90:
+        if alt >= aTargetAltitude * 0.75:
             print("Reached target altitude")
             break
         time.sleep(1)
