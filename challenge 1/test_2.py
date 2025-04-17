@@ -143,13 +143,13 @@ def marker_watcher():
             marker_found_flag.set()
             capture_photo(0)
             print("DropZone FOUND! Triggering landing...")
-            logger.info("DropZone Found")
+            logger.info("DropZone Found: ID = %s", marker_id)
             send_ned_velocity(-2.5,0,1.5)
             time.sleep(2)
             aruco_lat = vehicle.location.global_frame.lat
             aruco_lon = vehicle.location.global_frame.lon
-            print(f"DropZone Location: Lat {aruco_lat}, Lon {aruco_lon} assigned to {marker_id}")
-            logger.info(f"DropZone Location: Lat {aruco_lat}, Lon {aruco_lon} assigned to {marker_id}")
+            print(f"DropZone Location: Lat {aruco_lat}, Lon {aruco_lon}")
+            logger.info(f"DropZone Location: Lat {aruco_lat}, Lon {aruco_lon}")
             vehicle.mode = VehicleMode("LAND")
             break
         time.sleep(0.1)
