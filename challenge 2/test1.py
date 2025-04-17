@@ -34,7 +34,7 @@ marker_size = 0.253  # meters
 descent_speed = 0.2
 final_land_height = 1.25  # meters
 fast_descent_speed = 0.2
-slow_descent_speed = 0.015
+slow_descent_speed = 0.15
 slow_down_altitude = 2
 far_center_threshold = 30
 near_center_threshold = 10
@@ -230,8 +230,9 @@ def precision_land_pixel_offset():
                     vy = dx * Kp
                     send_ned_velocity(vx, vy, 0.01)
             else:
-                print("Reached final height. Switching to LOITER.")
-                vehicle.mode = VehicleMode("LOITER")
+                print("Reached final height. Switching to LAND.")
+                vehicle.mode = VehicleMode("LAND")
+                time.sleep(5)
                 print("Starting data transmission...")
                 start_time = time.time()
                 while time.time() - start_time < 120:

@@ -141,7 +141,8 @@ def marker_watcher():
         corners, ids, _ = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
         if ids is not None and marker_id in ids:
             print("DropZone FOUND! Triggering landing...")
-            send_ned_velocity(-2,0,2.5)
+            logger.info("DropZone Found")
+            send_ned_velocity(-2,0,2)
             time.sleep(1.5)
             marker_found_flag.set()
             aruco_lat = vehicle.location.global_frame.lat
