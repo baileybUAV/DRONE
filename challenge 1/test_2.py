@@ -1,5 +1,5 @@
                 
-
+#Speed Version, Fastest so Far
 
 from dronekit import connect, VehicleMode, LocationGlobalRelative
 from pymavlink import mavutil
@@ -142,7 +142,7 @@ def marker_watcher():
         if ids is not None and marker_id in ids:
             print("DropZone FOUND! Triggering landing...")
             send_ned_velocity(-2,0,2.5)
-            time.sleep(1)
+            time.sleep(1.5)
             marker_found_flag.set()
             aruco_lat = vehicle.location.global_frame.lat
             aruco_lon = vehicle.location.global_frame.lon
