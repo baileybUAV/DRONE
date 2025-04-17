@@ -143,7 +143,6 @@ def marker_watcher():
             aruco_lat = vehicle.location.global_frame.lat
             aruco_lon = vehicle.location.global_frame.lon
             marker_found_flag.set()
-            capture_photo(0)
             print("DropZone FOUND! Triggering landing...")
             send_ned_velocity(-2.5,0,1.5)
             time.sleep(2)
