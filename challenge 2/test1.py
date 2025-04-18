@@ -116,7 +116,7 @@ def goto_waypoint(waypoint, num):
         print(f"Distance to waypoint {num}: {dist:.2f}m")
         if dist < 1 or marker_found_flag.is_set():
             break
-        time.sleep(1)
+        time.sleep(0.01)
     if marker_found_flag.is_set():
         print("Marker found. Interrupting waypoint navigation.")
 
