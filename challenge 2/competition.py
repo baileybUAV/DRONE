@@ -132,7 +132,7 @@ def land():
 def marker_watcher():
     print("Marker watcher started...")
     frame_width = camera_resolution[0]
-    middle_left = frame_width // 4
+    middle_left = frame_width // 4  
     middle_right = 3 * frame_width // 4
 
     while not marker_found_flag.is_set():
@@ -241,6 +241,7 @@ def precision_land_pixel_offset():
                          print("GPS STATUS: %s" % vehicle.gps_0.fix_type)
                          sent = False
                     else:
+                        time.sleep(5)
                         for _ in range(5):
                             #LOG LOCATION
                             lat = vehicle.location.global_frame.lat

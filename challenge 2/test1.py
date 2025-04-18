@@ -132,8 +132,8 @@ def land():
 def marker_watcher():
     print("Marker watcher started...")
     frame_width = camera_resolution[0]
-    middle_left = frame_width // 4
-    middle_right = 3 * frame_width // 4
+    middle_left = frame_width // 6 
+    middle_right = 5 * frame_width // 6
 
     while not marker_found_flag.is_set():
         img = picam2.capture_array()
@@ -155,7 +155,7 @@ def marker_watcher():
                 possible_aruco_lat = vehicle.location.global_frame.lat
                 possible_aruco_lon = vehicle.location.global_frame.lon
                 logger.info(f"Possible Aruco Location: Lat {possible_aruco_lat}, Lon {possible_aruco_lon}") 
-        time.sleep(0.05)
+        time.sleep(0.01)
 
 
 
@@ -189,9 +189,8 @@ def precision_land_pixel_offset():
     print("Beginning precision landing...")
     aruco_lat = vehicle.location.global_frame.lat
     aruco_lon = vehicle.location.global_frame.lon
-    vel = vehicle.velocity[0]
     capture_photo(0)
-    send_ned_velocity(-vel, 0, -1)
+    send_ned_velocity(-1, 0, -1)
     time.sleep(2)
     aruco_lat2 = vehicle.location.global_frame.lat
     aruco_lon2 = vehicle.location.global_frame.lon
@@ -242,6 +241,7 @@ def precision_land_pixel_offset():
                          print("GPS STATUS: %s" % vehicle.gps_0.fix_type)
                          sent = False
                     else:
+                        time.sleep(5)
                         for _ in range(5):
                             #LOG LOCATION
                             lat = vehicle.location.global_frame.lat
