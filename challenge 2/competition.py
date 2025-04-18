@@ -147,14 +147,14 @@ def marker_watcher():
 
             # Only trigger if it's in the middle column
             if middle_left <= cx <= middle_right:
-                print("MARKER FOUND in center column! Triggering precision landing...")
+                print("DropZone FOUND in center column! Triggering precision landing...")
                 marker_found_flag.set()
                 break
             else:
-                print("Marker found, but NOT in center column.")
+                print("DropZone found, but NOT in center column.")
                 possible_aruco_lat = vehicle.location.global_frame.lat
                 possible_aruco_lon = vehicle.location.global_frame.lon
-                logger.info(f"Possible Aruco Location: Lat {possible_aruco_lat}, Lon {possible_aruco_lon}") 
+                logger.info(f"Possible DropZone Location: Lat {possible_aruco_lat}, Lon {possible_aruco_lon}") 
         time.sleep(0.01)
 
 
@@ -241,6 +241,7 @@ def precision_land_pixel_offset():
                          print("GPS STATUS: %s" % vehicle.gps_0.fix_type)
                          sent = False
                     else:
+                        print("RTK Fixed Obtained")
                         time.sleep(5)
                         for _ in range(5):
                             #LOG LOCATION
@@ -334,9 +335,9 @@ def precision_land_pixel_offset():
         time.sleep(0.1)
 
 # ------------------- MAIN MISSION -------------------
-print("Starting mission...")
-logger.info("Mission Start")
-telem_link.mav.statustext_send(mavutil.mavlink.MAV_SEVERITY_INFO, b"Mission start")
+print("Starting Scout mission...")
+logger.info("Scout Mission Start")
+telem_link.mav.statustext_send(mavutil.mavlink.MAV_SEVERITY_INFO, b"Scout Mission start")
 vehicle.mode = VehicleMode("GUIDED")
 manual_arm()
 takeoff(takeoff_altitude)
@@ -393,7 +394,7 @@ else:
 
 picam2.stop()
 vehicle.close()
-print("Mission completed.")
+print("Scout Mission completed.")
 logger.info("Mission End")
 exit()
 # ------------------- END OF SCRIPT -------------------
