@@ -29,7 +29,7 @@ logger = logging.getLogger()
 # ------------------- CONFIG -------------------
 takeoff_altitude = 2.5  # meters
 camera_resolution = (1600, 1080)
-marker_id = 0
+marker_id = 5
 marker_size = 0.253  # meters
 descent_speed = 0.2
 final_land_height = 1.25  # meters
@@ -116,7 +116,7 @@ def goto_waypoint(waypoint, num):
         print(f"Distance to waypoint {num}: {dist:.2f}m")
         if dist < 1 or marker_found_flag.is_set():
             break
-        time.sleep(1)
+        time.sleep(0.01)
     if marker_found_flag.is_set():
         print("Marker found. Interrupting waypoint navigation.")
 
@@ -132,8 +132,8 @@ def land():
 def marker_watcher():
     print("Marker watcher started...")
     frame_width = camera_resolution[0]
-    middle_left = frame_width // 4  
-    middle_right = 3 * frame_width // 4
+    middle_left = int(0.2 * frame_width)      # 20% from the left
+    middle_right = int(0.8 * frame_width)       # 80% from the left
 
     while not marker_found_flag.is_set():
         img = picam2.capture_array()
@@ -307,15 +307,21 @@ def precision_land_pixel_offset():
 
                 logger.info("DropZone Location Has been Transmitted to UGV")
                 time.sleep(1)
+                telem_link.mav.send(msg)
                 print("Transmission Time has Elapsed")
                 print("Returning to Launch Point...")
                 time.sleep(1)
+                telem_link.mav.send(msg)
                 vehicle.mode = VehicleMode("GUIDED")
                 vehicle.armed = True
                 takeoff(takeoff_altitude)
                 vehicle.simple_goto(LocationGlobalRelative(27.9867283, -82.3017159, takeoff_altitude))
+                telem_link.mav.send(msg)
                 time.sleep(15)
                 vehicle.mode = VehicleMode("LAND")
+                for _ in range(5):
+                    telem_link.mav.send(msg)
+                    time.sleep(1)
                 break
         elif time.time() - search_time < 10:
             print("Marker Lost. Returning to last known location")
@@ -330,6 +336,7 @@ def precision_land_pixel_offset():
 # ------------------- MAIN MISSION -------------------
 print("Starting mission...")
 logger.info("Mission Start")
+telem_link.mav.statustext_send(mavutil.mavlink.MAV_SEVERITY_INFO, b"Mission start")
 vehicle.mode = VehicleMode("GUIDED")
 manual_arm()
 takeoff(takeoff_altitude)
