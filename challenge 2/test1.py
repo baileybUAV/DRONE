@@ -155,7 +155,7 @@ def marker_watcher():
                 possible_aruco_lat = vehicle.location.global_frame.lat
                 possible_aruco_lon = vehicle.location.global_frame.lon
                 logger.info(f"Possible Aruco Location: Lat {possible_aruco_lat}, Lon {possible_aruco_lon}") 
-        time.sleep(0.5)
+        time.sleep(0.05)
 
 
 
@@ -189,8 +189,9 @@ def precision_land_pixel_offset():
     print("Beginning precision landing...")
     aruco_lat = vehicle.location.global_frame.lat
     aruco_lon = vehicle.location.global_frame.lon
+    vel = vehicle.velocity.x
     capture_photo(0)
-    send_ned_velocity(-1.25, 0, -1)
+    send_ned_velocity(-vel, 0, -1)
     time.sleep(2)
     aruco_lat2 = vehicle.location.global_frame.lat
     aruco_lon2 = vehicle.location.global_frame.lon
