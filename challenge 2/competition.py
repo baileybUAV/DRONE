@@ -155,7 +155,7 @@ def marker_watcher():
                 possible_aruco_lat = vehicle.location.global_frame.lat
                 possible_aruco_lon = vehicle.location.global_frame.lon
                 logger.info(f"Possible Aruco Location: Lat {possible_aruco_lat}, Lon {possible_aruco_lon}") 
-        time.sleep(0.5)
+        time.sleep(0.01)
 
 
 
