@@ -330,6 +330,7 @@ def precision_land_pixel_offset():
 # ------------------- MAIN MISSION -------------------
 print("Starting mission...")
 logger.info("Mission Start")
+telem_link.mav.statustext_send(mavutil.mavlink.MAV_SEVERITY_INFO, b"Mission start")
 vehicle.mode = VehicleMode("GUIDED")
 manual_arm()
 takeoff(takeoff_altitude)
