@@ -307,15 +307,21 @@ def precision_land_pixel_offset():
 
                 logger.info("DropZone Location Has been Transmitted to UGV")
                 time.sleep(1)
+                telem_link.mav.send(msg)
                 print("Transmission Time has Elapsed")
                 print("Returning to Launch Point...")
                 time.sleep(1)
+                telem_link.mav.send(msg)
                 vehicle.mode = VehicleMode("GUIDED")
                 vehicle.armed = True
                 takeoff(takeoff_altitude)
                 vehicle.simple_goto(LocationGlobalRelative(27.9867283, -82.3017159, takeoff_altitude))
+                telem_link.mav.send(msg)
                 time.sleep(15)
                 vehicle.mode = VehicleMode("LAND")
+                for _ in range(5):
+                    telem_link.mav.send(msg)
+                    time.sleep(1)
                 break
         elif time.time() - search_time < 10:
             print("Marker Lost. Returning to last known location")
