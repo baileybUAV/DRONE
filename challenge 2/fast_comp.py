@@ -27,7 +27,7 @@ logging.basicConfig(
 logger = logging.getLogger()
 
 # ------------------- CONFIG -------------------
-takeoff_altitude = 5  # meters
+takeoff_altitude = 4  # meters
 camera_resolution = (1600, 1080)
 marker_id = 3
 marker_size = 0.253  # meters
@@ -340,17 +340,17 @@ watcher_thread.start()
 
 waypoints = [
 LocationGlobalRelative(27.9867158, -82.3015961, takeoff_altitude),
-LocationGlobalRelative(27.9866915, -82.3018502, takeoff_altitude),
+LocationGlobalRelative(27.9866808, -82.3018502, takeoff_altitude),
 LocationGlobalRelative(27.9866749, -82.3015961, takeoff_altitude),
-LocationGlobalRelative(27.9866512, -82.3018496, takeoff_altitude),
-LocationGlobalRelative(27.9866329, -82.3015941, takeoff_altitude),
-LocationGlobalRelative(27.9866092, -82.3018502, takeoff_altitude),
-LocationGlobalRelative(27.9865908, -82.3015954, takeoff_altitude),
-LocationGlobalRelative(27.9865689, -82.3018509, takeoff_altitude),
-LocationGlobalRelative(27.9865512, -82.3015961, takeoff_altitude),
+LocationGlobalRelative(27.9866435, -82.3018496, takeoff_altitude),
+LocationGlobalRelative(27.9866370, -82.3015954, takeoff_altitude),
+LocationGlobalRelative(27.9866056, -82.3018502, takeoff_altitude),
+LocationGlobalRelative(27.9866027, -82.3015954, takeoff_altitude),
+LocationGlobalRelative(27.9865671, -82.3018496, takeoff_altitude),
+LocationGlobalRelative(27.9865671, -82.3015961, takeoff_altitude),
 LocationGlobalRelative(27.9865275, -82.3018509, takeoff_altitude),
 LocationGlobalRelative(27.9865291, -82.3015920, takeoff_altitude),
-LocationGlobalRelative(27.9867187, -82.3018375, takeoff_altitude),
+LocationGlobalRelative(27.9867193, -82.3018502, takeoff_altitude),
 ]
 
 for i, wp in enumerate(waypoints):
