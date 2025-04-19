@@ -24,7 +24,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger()
 # ------------------- CONFIG -------------------
-takeoff_altitude = 3  # meters
+takeoff_altitude = 4  # meters
 camera_resolution = (1600, 1080)
 marker_id = 0
 marker_size = 0.253  # meters
@@ -129,8 +129,8 @@ def land():
 def marker_watcher():
     print("Marker watcher started...")
     frame_width = camera_resolution[0]
-    middle_left = int(0.1 * frame_width)      # 20% from the left
-    middle_right = int(0.9 * frame_width)       # 80% from the left
+    middle_left = int(0.1 * frame_width)      # 10% from the left
+    middle_right = int(0.9 * frame_width)       # 90% from the left
 
     while not marker_found_flag.is_set():
         img = picam2.capture_array()
