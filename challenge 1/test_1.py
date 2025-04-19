@@ -104,7 +104,7 @@ def goto_waypoint(waypoint, num):
         print(f"Distance to waypoint {num}: {dist:.2f}m")
         if dist < 1 or marker_found_flag.is_set():
             break
-        time.sleep(1)
+        time.sleep(0.01)
     if marker_found_flag.is_set():
         print("Marker found. Interrupting waypoint navigation.")
 
@@ -146,12 +146,12 @@ def marker_watcher():
             aruco_lon = vehicle.location.global_frame.lon
             print(f"DropZone Location: Lat {aruco_lat}, Lon {aruco_lon}")
             logger.info(f"DropZone Location: Lat {aruco_lat}, Lon {aruco_lon}")
-            vel = vehicle.velocity.x
+            vel = vehicle.velocity[0]
             send_ned_velocity(-vel,0,1.5)
             time.sleep(2)
             vehicle.mode = VehicleMode("LAND")
             break
-        time.sleep(0.1)
+        time.sleep(0.01)
 
 
 
