@@ -186,7 +186,7 @@ def precision_land_pixel_offset():
     time.sleep(0.2)
     aruco_lat = vehicle.location.global_frame.lat
     aruco_lon = vehicle.location.global_frame.lon
-    send_ned_velocity(-1, 0, 0)
+    send_ned_velocity(-2, 0, 0)
     time.sleep(2)
     capture_photo(1)
     while vehicle.armed:
