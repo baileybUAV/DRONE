@@ -312,7 +312,7 @@ def precision_land_pixel_offset():
                 vehicle.mode = VehicleMode("GUIDED")
                 vehicle.armed = True
                 takeoff(takeoff_altitude)
-                vehicle.simple_goto(LocationGlobalRelative(27.9867283, -82.3017159, takeoff_altitude))
+                vehicle.simple_goto(LocationGlobalRelative(27.9867187, -82.3018375, takeoff_altitude))
                 telem_link.mav.send(msg)
                 time.sleep(15)
                 vehicle.mode = VehicleMode("LAND")
@@ -339,15 +339,18 @@ watcher_thread = threading.Thread(target=marker_watcher, daemon=True)
 watcher_thread.start()
 
 waypoints = [
-LocationGlobalRelative(27.9867282, -82.3015834, takeoff_altitude),
-LocationGlobalRelative(27.9866967, -82.3018654, takeoff_altitude),
-LocationGlobalRelative(27.9866740, -82.3015834, takeoff_altitude),
-LocationGlobalRelative(27.9866425, -82.3018649, takeoff_altitude),
-LocationGlobalRelative(27.9866199, -82.3015834, takeoff_altitude),
-LocationGlobalRelative(27.9865884, -82.3018643, takeoff_altitude),
-LocationGlobalRelative(27.9865657, -82.3015834, takeoff_altitude),
-LocationGlobalRelative(27.9865342, -82.3018638, takeoff_altitude),
-LocationGlobalRelative(27.9865239, -82.3015901, takeoff_altitude),
+LocationGlobalRelative(27.9867158, -82.3015961, takeoff_altitude),
+LocationGlobalRelative(27.9866915, -82.3018502, takeoff_altitude),
+LocationGlobalRelative(27.9866749, -82.3015961, takeoff_altitude),
+LocationGlobalRelative(27.9866512, -82.3018496, takeoff_altitude),
+LocationGlobalRelative(27.9866329, -82.3015941, takeoff_altitude),
+LocationGlobalRelative(27.9866092, -82.3018502, takeoff_altitude),
+LocationGlobalRelative(27.9865908, -82.3015954, takeoff_altitude),
+LocationGlobalRelative(27.9865689, -82.3018509, takeoff_altitude),
+LocationGlobalRelative(27.9865512, -82.3015961, takeoff_altitude),
+LocationGlobalRelative(27.9865275, -82.3018509, takeoff_altitude),
+LocationGlobalRelative(27.9865291, -82.3015920, takeoff_altitude),
+LocationGlobalRelative(27.9867187, -82.3018375, takeoff_altitude),
 ]
 
 for i, wp in enumerate(waypoints):
