@@ -239,7 +239,6 @@ def precision_land_pixel_offset():
                          sent = False
                     else:
                         print("RTK Fixed Obtained")
-                        time.sleep(5)
                         for _ in range(5):
                             #LOG LOCATION
                             lat = vehicle.location.global_frame.lat
