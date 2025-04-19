@@ -128,17 +128,30 @@ def land():
 # ------------------- MARKER WATCHER -------------------
 def marker_watcher():
     print("Marker watcher started...")
+    frame_width = camera_resolution[0]
+    middle_left = int(0.1 * frame_width)      # 20% from the left
+    middle_right = int(0.9 * frame_width)       # 80% from the left
+
     while not marker_found_flag.is_set():
         img = picam2.capture_array()
         img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         corners, ids, _ = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
         if ids is not None and marker_id in ids:
-            marker_found_flag.set()
-            capture_photo(0)
-            print("DropZone FOUND! Triggering precision landing...")
-            logger.info(f"DropZone Found")
-            break
+            index = np.where(ids == marker_id)[0][0]
+            c = corners[index][0]
+            cx = int(np.mean(c[:, 0]))  # x center of marker
+
+            # Only trigger if it's in the middle column
+            if middle_left <= cx <= middle_right:
+                print("DropZone FOUND in center column! Triggering precision landing...")
+                marker_found_flag.set()
+                break
+            else:
+                print("DropZone found, but NOT in center column.")
+                possible_aruco_lat = vehicle.location.global_frame.lat
+                possible_aruco_lon = vehicle.location.global_frame.lon
+                logger.info(f"Possible DropZone Location: Lat {possible_aruco_lat}, Lon {possible_aruco_lon}") 
         time.sleep(0.01)
 
 
