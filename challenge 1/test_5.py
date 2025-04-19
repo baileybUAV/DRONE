@@ -221,7 +221,7 @@ def precision_land_pixel_offset():
                 break
         else:
             print("Marker Lost. Returning to last known location")
-            vehicle.simple_goto(LocationGlobalRelative(aruco_lat, aruco_lon, 4))
+            vehicle.simple_goto(LocationGlobalRelative(aruco_lat, aruco_lon, 6))
         time.sleep(0.1)
 
 # ------------------- MAIN MISSION -------------------
