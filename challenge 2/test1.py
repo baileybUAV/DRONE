@@ -27,14 +27,14 @@ logging.basicConfig(
 logger = logging.getLogger()
 
 # ------------------- CONFIG -------------------
-takeoff_altitude = 2.5  # meters
+takeoff_altitude = 3  # meters
 camera_resolution = (1600, 1080)
-marker_id = 0
+marker_id = 5
 marker_size = 0.253  # meters
 descent_speed = 0.2
 final_land_height = 1.25  # meters
-fast_descent_speed = 0.2
-slow_descent_speed = 0.15
+fast_descent_speed = 0.25
+slow_descent_speed = 0.20
 slow_down_altitude = 2
 far_center_threshold = 30
 near_center_threshold = 15
@@ -147,14 +147,14 @@ def marker_watcher():
 
             # Only trigger if it's in the middle column
             if middle_left <= cx <= middle_right:
-                print("MARKER FOUND in center column! Triggering precision landing...")
+                print("DropZone FOUND in center column! Triggering precision landing...")
                 marker_found_flag.set()
                 break
             else:
-                print("Marker found, but NOT in center column.")
+                print("DropZone found, but NOT in center column.")
                 possible_aruco_lat = vehicle.location.global_frame.lat
                 possible_aruco_lon = vehicle.location.global_frame.lon
-                logger.info(f"Possible Aruco Location: Lat {possible_aruco_lat}, Lon {possible_aruco_lon}") 
+                logger.info(f"Possible DropZone Location: Lat {possible_aruco_lat}, Lon {possible_aruco_lon}") 
         time.sleep(0.01)
 
 
@@ -241,6 +241,7 @@ def precision_land_pixel_offset():
                          print("GPS STATUS: %s" % vehicle.gps_0.fix_type)
                          sent = False
                     else:
+                        print("RTK Fixed Obtained")
                         time.sleep(5)
                         for _ in range(5):
                             #LOG LOCATION
@@ -334,9 +335,9 @@ def precision_land_pixel_offset():
         time.sleep(0.1)
 
 # ------------------- MAIN MISSION -------------------
-print("Starting mission...")
-logger.info("Mission Start")
-telem_link.mav.statustext_send(mavutil.mavlink.MAV_SEVERITY_INFO, b"Mission start")
+print("Starting Scout mission...")
+logger.info("Scout Mission Start")
+telem_link.mav.statustext_send(mavutil.mavlink.MAV_SEVERITY_INFO, b"Scout Mission start")
 vehicle.mode = VehicleMode("GUIDED")
 manual_arm()
 takeoff(takeoff_altitude)
@@ -346,38 +347,15 @@ watcher_thread = threading.Thread(target=marker_watcher, daemon=True)
 watcher_thread.start()
 
 waypoints = [
-LocationGlobalRelative(27.9867265, -82.3018582, takeoff_altitude),
-LocationGlobalRelative(27.9865179, -82.3018557, takeoff_altitude),
-LocationGlobalRelative(27.9865177, -82.3018379, takeoff_altitude),
-LocationGlobalRelative(27.9867267, -82.3018404, takeoff_altitude),
-LocationGlobalRelative(27.9867269, -82.3018226, takeoff_altitude),
-LocationGlobalRelative(27.9865175, -82.3018201, takeoff_altitude),
-LocationGlobalRelative(27.9865173, -82.3018023, takeoff_altitude),
-LocationGlobalRelative(27.9867272, -82.3018048, takeoff_altitude),
-LocationGlobalRelative(27.9867274, -82.3017870, takeoff_altitude),
-LocationGlobalRelative(27.9865172, -82.3017845, takeoff_altitude),
-LocationGlobalRelative(27.9865170, -82.3017667, takeoff_altitude),
-LocationGlobalRelative(27.9867276, -82.3017692, takeoff_altitude),
-LocationGlobalRelative(27.9867278, -82.3017515, takeoff_altitude),
-LocationGlobalRelative(27.9865168, -82.3017489, takeoff_altitude),
-LocationGlobalRelative(27.9865166, -82.3017311, takeoff_altitude),
-LocationGlobalRelative(27.9867281, -82.3017337, takeoff_altitude),
-LocationGlobalRelative(27.9867283, -82.3017159, takeoff_altitude),
-LocationGlobalRelative(27.9865164, -82.3017133, takeoff_altitude),
-LocationGlobalRelative(27.9865162, -82.3016955, takeoff_altitude),
-LocationGlobalRelative(27.9867285, -82.3016981, takeoff_altitude),
-LocationGlobalRelative(27.9867287, -82.3016803, takeoff_altitude),
-LocationGlobalRelative(27.9865160, -82.3016777, takeoff_altitude),
-LocationGlobalRelative(27.9865158, -82.3016599, takeoff_altitude),
-LocationGlobalRelative(27.9867290, -82.3016625, takeoff_altitude),
-LocationGlobalRelative(27.9867292, -82.3016447, takeoff_altitude),
-LocationGlobalRelative(27.9865157, -82.3016421, takeoff_altitude),
-LocationGlobalRelative(27.9865155, -82.3016243, takeoff_altitude),
-LocationGlobalRelative(27.9867294, -82.3016269, takeoff_altitude),
-LocationGlobalRelative(27.9867297, -82.3016091, takeoff_altitude),
-LocationGlobalRelative(27.9865153, -82.3016065, takeoff_altitude),
-LocationGlobalRelative(27.9865151, -82.3015888, takeoff_altitude),
-LocationGlobalRelative(27.9867299, -82.3015913, takeoff_altitude),
+LocationGlobalRelative(27.9867282, -82.3015834, takeoff_altitude),
+LocationGlobalRelative(27.9866967, -82.3018654, takeoff_altitude),
+LocationGlobalRelative(27.9866740, -82.3015834, takeoff_altitude),
+LocationGlobalRelative(27.9866425, -82.3018649, takeoff_altitude),
+LocationGlobalRelative(27.9866199, -82.3015834, takeoff_altitude),
+LocationGlobalRelative(27.9865884, -82.3018643, takeoff_altitude),
+LocationGlobalRelative(27.9865657, -82.3015834, takeoff_altitude),
+LocationGlobalRelative(27.9865342, -82.3018638, takeoff_altitude),
+LocationGlobalRelative(27.9865239, -82.3015901, takeoff_altitude),
 ]
 
 for i, wp in enumerate(waypoints):
@@ -393,7 +371,7 @@ else:
 
 picam2.stop()
 vehicle.close()
-print("Mission completed.")
+print("Scout Mission completed.")
 logger.info("Mission End")
 exit()
 # ------------------- END OF SCRIPT -------------------
