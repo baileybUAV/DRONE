@@ -1,3 +1,7 @@
+
+#BEST CODE 
+
+
 from dronekit import connect, VehicleMode, LocationGlobalRelative
 from pymavlink import mavutil
 from geopy.distance import distance as geopy_distance
@@ -11,26 +15,6 @@ from picamera2 import Picamera2
 import argparse
 import logging
 
-
-# ------------------- CONFIG -------------------
-takeoff_altitude = 3  # meters
-camera_resolution = (1600, 1080)
-marker_id = 0
-marker_size = 0.253  # meters
-descent_speed = 0.2
-final_land_height = 1.0
-fast_descent_speed = 0.30
-slow_descent_speed = 0.12
-slow_down_altitude = 3.0
-far_center_threshold = 50
-near_center_threshold = 20
-center_threshold = 25
-Kp = 0.001
-far_Kp = 0.0020
-near_Kp = 0.001
-marker_found_flag = threading.Event()
-
-# ------------------- LOGGING SETUP -------------------
 logging.basicConfig(
     filename='drone_mission_log.txt',
     filemode='w',
@@ -39,7 +23,21 @@ logging.basicConfig(
     datefmt='%Y-%m-%d %H:%M:%S'
 )
 logger = logging.getLogger()
-
+# ------------------- CONFIG -------------------
+takeoff_altitude = 6  # meters
+camera_resolution = (1600, 1080)
+marker_id = 0
+marker_size = 0.253  # meters
+descent_speed = 0.2
+final_land_height = 1.5  # meters
+fast_descent_speed = 0.2
+slow_descent_speed = 0.05
+slow_down_altitude = 2
+far_center_threshold = 35
+near_center_threshold = 10
+far_Kp = 0.0015
+near_Kp = 0.001
+marker_found_flag = threading.Event()
 
 # ------------------- CONNECT -------------------
 def connectMyCopter():
@@ -68,6 +66,16 @@ camera_distortion = np.loadtxt(calib_path + 'cameraDistortion.txt', delimiter=',
 aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_6X6_250)
 parameters = aruco.DetectorParameters()
 
+
+def capture_photo(index=None):
+    img = picam2.capture_array()
+    img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+    timestamp = time.strftime("%Y%m%d_%H%M%S")
+    suffix = f"_{index}" if index is not None else ""
+    photo_path = f"aruco_photo_{timestamp}{suffix}.jpg"
+    cv2.imwrite(photo_path, img)
+    print(f"Photo captured and saved at: {photo_path}")
+
 # ------------------- FLIGHT FUNCTIONS -------------------
 def manual_arm():
     print("Pre-arm checks...")
@@ -86,7 +94,7 @@ def takeoff(aTargetAltitude):
     while True:
         alt = vehicle.location.global_relative_frame.alt
         print(f"Altitude: {alt:.2f}")
-        if alt >= aTargetAltitude * 0.85:
+        if alt >= aTargetAltitude * 0.90:
             print("Reached target altitude")
             break
         time.sleep(1)
@@ -98,14 +106,14 @@ def distance_to(target_location, current_location):
 
 def goto_waypoint(waypoint, num):
     print(f"Going to waypoint {num}...")
-    vehicle.simple_goto(waypoint)
+    vehicle.simple_goto(waypoint,airspeed = 10)
     while True:
         current = vehicle.location.global_relative_frame
         dist = distance_to(waypoint, current)
         print(f"Distance to waypoint {num}: {dist:.2f}m")
-        if dist < 0.5 or marker_found_flag.is_set():
+        if dist < 1 or marker_found_flag.is_set():
             break
-        time.sleep(1)
+        time.sleep(0.01)
     if marker_found_flag.is_set():
         print("Marker found. Interrupting waypoint navigation.")
 
@@ -126,12 +134,13 @@ def marker_watcher():
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         corners, ids, _ = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
         if ids is not None and marker_id in ids:
-            print("DropZone Found! Triggering precision landing...")
-            #LOG DETECTION
-            logger.info("DropZone Found! Triggering precision landing...")
+            send_ned_velocity(-2.5,0,0)
+            time.sleep(2)
+            print("DropZone FOUND! Triggering precision landing...")
+            logger.info(f"DropZone Found")
             marker_found_flag.set()
             break
-        time.sleep(0.5)
+        time.sleep(0.01)
 
 
 def setup_telem_connection():
@@ -162,87 +171,64 @@ def send_ned_velocity(vx, vy, vz):
 
 def precision_land_pixel_offset():
     print("Beginning precision landing...")
-
-    centered_time = None
-    landed = False
-
+    aruco_lat = vehicle.location.global_frame.lat
+    aruco_lon = vehicle.location.global_frame.lon
+    capture_photo(0)
+    send_ned_velocity(-1, 0, -1)
+    time.sleep(2)
+    capture_photo(1)
     while vehicle.armed:
         img = picam2.capture_array()
         img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
         img = cv2.undistort(img, camera_matrix, camera_distortion)
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
         corners, ids, _ = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
-
         if ids is not None and marker_id in ids:
             index = np.where(ids == marker_id)[0][0]
             c = corners[index][0]
             cx = int(np.mean(c[:, 0]))
             cy = int(np.mean(c[:, 1]))
-
             frame_center = (camera_resolution[0] // 2, camera_resolution[1] // 2)
             dx = cx - frame_center[0]
-            dy = cy - frame_center[1]
-
-            print(f"Offset dx={dx}, dy={dy}")
-
-            altitude = vehicle.rangefinder.distance
-            if altitude is None or altitude <= 0:
-                altitude = 10.0  # fallback
-
-            if altitude > final_land_height:
-                # ✅ Require centering before descending
-                if abs(dx) < center_threshold and abs(dy) < center_threshold:
-                    print(f"[DESCENT] Centered. Descending... vz={descent_speed}")
-                    send_ned_velocity(0, 0, descent_speed)
-                    centered_time = None  # clear hold state
-                else:
-                    # Not centered yet — correct laterally
-                    vx = -dy * Kp
-                    vy = dx * Kp
-                    print(f"[CORRECTING] vx={vx:.3f}, vy={vy:.3f}")
-                    send_ned_velocity(vx, vy, 0)
-                    centered_time = None
+            dy = cy - frame_center[1] - 120  # Adjust for camera pos
+            altitude = vehicle.rangefinder.distance or 10.0
+            if altitude > slow_down_altitude:
+                descent_vz = fast_descent_speed
+                center_threshold = far_center_threshold
+                Kp = far_Kp
             else:
-                # ✅ Final height reached — precision lock stage
+                descent_vz = slow_descent_speed
+                center_threshold = near_center_threshold
+                Kp = near_Kp
+            if altitude > final_land_height:
                 if abs(dx) < center_threshold and abs(dy) < center_threshold:
-                    if centered_time is None:
-                        centered_time = time.time()
-                        print("[LOCK] Marker centered. Holding position...")
-
-                    elapsed = time.time() - centered_time
-
-                    if elapsed >= 0.25 and not landed:
-                        print("[LAND] Hold complete. Switching to LAND.")
-                        vehicle.mode = VehicleMode("LAND")
-                        landed = True
-                        break
-                    else:
-                        print(f"[LOCK] Holding... {elapsed:.1f}s")
-                        send_ned_velocity(0, 0, 0)
+                    print("Marker centered. Lnading...")
+                    send_ned_velocity(0, 0, descent_vz)
+                    aruco_lat = vehicle.location.global_frame.lat
+                    aruco_lon = vehicle.location.global_frame.lon
+                    print(f"DropZone Location: Lat {aruco_lat}, Lon {aruco_lon}")
+                    logger.info(f"DropZone Location: Lat {aruco_lat}, Lon {aruco_lon}")
+                    vehicle.mode = VehicleMode("LAND")
+                    break
+                    
                 else:
-                    # Still not centered — hold off LAND
-                    centered_time = None
+                    print("Centering marker...")
                     vx = -dy * Kp
                     vy = dx * Kp
-                    print(f"[RE-CENTERING @ LOW ALT] vx={vx:.3f}, vy={vy:.3f}")
-                    send_ned_velocity(vx, vy, 0)
-
+                    send_ned_velocity(vx, vy, 0.01)
+            else:
+                print("Reached final height. Switching to LAND.")
+                vehicle.mode = VehicleMode("LAND")
+                capture_photo(2)
+                break
         else:
-            print("[INFO] Marker not detected. Hovering.")
-            centered_time = None
-            send_ned_velocity(0, 0, 0)
-
+            print("Marker Lost. Returning to last known location")
+            vehicle.simple_goto(LocationGlobalRelative(aruco_lat, aruco_lon, 4))
         time.sleep(0.1)
-
-
 
 # ------------------- MAIN MISSION -------------------
 print("Starting mission...")
-logger.info("Starting mission...")
 manual_arm()
-
-
 takeoff(takeoff_altitude)
 
 
@@ -250,10 +236,15 @@ watcher_thread = threading.Thread(target=marker_watcher, daemon=True)
 watcher_thread.start()
 
 waypoints = [
-    LocationGlobalRelative(27.9865908,-82.3017772, 6),
-    LocationGlobalRelative(27.9865914,-82.3016015, 6),
-    LocationGlobalRelative(27.9866785,-82.3015860, 6),
-    LocationGlobalRelative(27.9866660,-82.3017711, 6)
+LocationGlobalRelative(27.9867282, -82.3015834, takeoff_altitude),
+LocationGlobalRelative(27.9866967, -82.3018654, takeoff_altitude),
+LocationGlobalRelative(27.9866740, -82.3015834, takeoff_altitude),
+LocationGlobalRelative(27.9866425, -82.3018649, takeoff_altitude),
+LocationGlobalRelative(27.9866199, -82.3015834, takeoff_altitude),
+LocationGlobalRelative(27.9865884, -82.3018643, takeoff_altitude),
+LocationGlobalRelative(27.9865657, -82.3015834, takeoff_altitude),
+LocationGlobalRelative(27.9865342, -82.3018638, takeoff_altitude),
+LocationGlobalRelative(27.9865239, -82.3015901, takeoff_altitude),
 ]
 
 for i, wp in enumerate(waypoints):
@@ -267,12 +258,8 @@ else:
     print("No marker detected during mission. Proceeding to normal landing.")
     land()
 
-
-logger.info("Mission completed.")
-logger.info("Logging Ended.")
-print("Mission completed.")
-
 picam2.stop()
-vehicle.close() 
+vehicle.close()
+print("Mission completed.")
 exit()
 # ------------------- END OF SCRIPT -------------------
