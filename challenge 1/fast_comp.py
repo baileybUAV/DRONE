@@ -24,7 +24,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger()
 # ------------------- CONFIG -------------------
-takeoff_altitude = 4  # meters
+takeoff_altitude = 4.5  # meters
 camera_resolution = (1600, 1080)
 marker_id = 3
 marker_size = 0.253  # meters
@@ -235,7 +235,7 @@ def precision_land_pixel_offset():
                 break
         else:
             print("Marker Lost. Returning to last known location")
-            vehicle.simple_goto(LocationGlobalRelative(aruco_lat, aruco_lon, 4))
+            vehicle.simple_goto(LocationGlobalRelative(aruco_lat, aruco_lon, takeoff_altitude))
         time.sleep(0.1)
 
 # ------------------- MAIN MISSION -------------------
