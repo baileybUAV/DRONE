@@ -191,12 +191,8 @@ def precision_land_pixel_offset():
     time.sleep(0.2)
     aruco_lat = vehicle.location.global_frame.lat
     aruco_lon = vehicle.location.global_frame.lon
-    time.sleep(0.5)
-    aruco_lat2 = vehicle.location.global_frame.lat
-    aruco_lon2 = vehicle.location.global_frame.lon
     time.sleep(2)
     capture_photo(1)
-    search_time = time.time()
     while vehicle.armed:
         img = picam2.capture_array()
         img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
@@ -323,14 +319,10 @@ def precision_land_pixel_offset():
                     telem_link.mav.send(msg)
                     time.sleep(1)
                 break
-        elif time.time() - search_time < 15:
-            print("Marker Lost. Returning to last known location")
-            vehicle.simple_goto(LocationGlobalRelative(aruco_lat, aruco_lon, takeoff_altitude + 1))
-            time.sleep(1)
 
         else:
-            print("Marker Lost. Returning to second last known location")
-            vehicle.simple_goto(LocationGlobalRelative(aruco_lat2, aruco_lon2, takeoff_altitude + 1))
+            print("Marker Lost. Returning to  last known location")
+            vehicle.simple_goto(LocationGlobalRelative(aruco_lat, aruco_lon, takeoff_altitude + 1))
             time.sleep(1)
         time.sleep(0.1)
 
