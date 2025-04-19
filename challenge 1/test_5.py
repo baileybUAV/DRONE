@@ -172,7 +172,6 @@ def precision_land_pixel_offset():
     print("Beginning precision landing...")
     aruco_lat = vehicle.location.global_frame.lat
     aruco_lon = vehicle.location.global_frame.lon
-    
     send_ned_velocity(-1, 0, 0)
     time.sleep(2)
     capture_photo(1)
