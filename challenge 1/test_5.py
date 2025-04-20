@@ -64,7 +64,7 @@ calib_path = "/home/uav/drone/OpenCV/calibrationFiles/"
 camera_matrix = np.loadtxt(calib_path + 'cameraMatrix.txt', delimiter=',')
 camera_distortion = np.loadtxt(calib_path + 'cameraDistortion.txt', delimiter=',')
 aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_6X6_250)
-parameters = aruco.DetectorParameters_create()
+parameters = aruco.DetectorParameters()
 parameters.maxErroneousBitsInBorderRate = 0.1
 parameters.adaptiveThreshWinSizeMin = 3
 parameters.adaptiveThreshWinSizeMax = 23
