@@ -345,6 +345,7 @@ watcher_thread = threading.Thread(target=marker_watcher, daemon=True)
 watcher_thread.start()
 
 waypoints = [
+LocationGlobalRelative(27.9867158, -82.3015961, takeoff_altitude),
 LocationGlobalRelative(27.9866808, -82.3018502, takeoff_altitude),
 LocationGlobalRelative(27.9866749, -82.3015961, takeoff_altitude),
 LocationGlobalRelative(27.9866435, -82.3018496, takeoff_altitude),
