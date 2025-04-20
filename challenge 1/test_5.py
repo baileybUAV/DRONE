@@ -29,7 +29,7 @@ camera_resolution = (1600, 1080)
 marker_id = 3
 marker_size = 0.253  # meters
 descent_speed = 0.2
-final_land_height = 3.5  # meters
+final_land_height = 2.5  # meters
 fast_descent_speed = 0.35
 slow_descent_speed = 0.25
 slow_down_altitude = 2
@@ -233,9 +233,12 @@ def precision_land_pixel_offset():
                     vy = dx * Kp
                     send_ned_velocity(vx, vy, 0.01)
             else:
+                aruco_lat = vehicle.location.global_frame.lat
+                aruco_lon = vehicle.location.global_frame.lon
+                print(f"DropZone Location: Lat {aruco_lat}, Lon {aruco_lon}")
+                logger.info(f"DropZone Location: Lat {aruco_lat}, Lon {aruco_lon}")
                 print("Reached final height. Switching to LAND.")
                 vehicle.mode = VehicleMode("LAND")
-                capture_photo(2)
                 break
         else:
             print("Marker Lost. Returning to last known location")
