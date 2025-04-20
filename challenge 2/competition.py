@@ -27,7 +27,7 @@ logging.basicConfig(
 logger = logging.getLogger()
 
 # ------------------- CONFIG -------------------
-takeoff_altitude = 4  # meters
+takeoff_altitude = 3  # meters
 camera_resolution = (1600, 1080)
 marker_id = 4
 marker_size = 0.253  # meters
