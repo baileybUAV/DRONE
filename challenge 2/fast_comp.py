@@ -191,7 +191,6 @@ def precision_land_pixel_offset():
     time.sleep(0.2)
     aruco_lat = vehicle.location.global_frame.lat
     aruco_lon = vehicle.location.global_frame.lon
-    time.sleep(2)
     capture_photo(1)
     while vehicle.armed:
         img = picam2.capture_array()
