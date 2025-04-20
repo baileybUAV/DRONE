@@ -99,10 +99,10 @@ def takeoff(aTargetAltitude):
     while True:
         alt = vehicle.location.global_relative_frame.alt
         print(f"Altitude: {alt:.2f}")
-        if alt >= aTargetAltitude * 0.60:
+        if alt >= aTargetAltitude * 0.70:
             print("Reached target altitude")
             break
-        time.sleep(1)
+        time.sleep(0.1)
 
 def distance_to(target_location, current_location):
     dlat = target_location.lat - current_location.lat
@@ -172,7 +172,7 @@ def setup_telem_connection():
 
 
 telem_link = setup_telem_connection()
-
+ 
 # ------------------- PRECISION LANDING -------------------
 def send_ned_velocity(vx, vy, vz):
     msg = vehicle.message_factory.set_position_target_local_ned_encode(
