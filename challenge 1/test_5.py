@@ -115,7 +115,6 @@ def goto_waypoint(waypoint, num):
     while True:
         current = vehicle.location.global_relative_frame
         dist = distance_to(waypoint, current)
-        print(f"Distance to waypoint {num}: {dist:.2f}m")
         if dist < 1 or marker_found_flag.is_set():
             break
         time.sleep(0.01)
