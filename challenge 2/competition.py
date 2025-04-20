@@ -70,8 +70,8 @@ aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_6X6_250)
 parameters = aruco.DetectorParameters()
 parameters.maxErroneousBitsInBorderRate = 0.1
 parameters.adaptiveThreshWinSizeMin = 3
-parameters.adaptiveThreshWinSizeMax = 23
-parameters.adaptiveThreshWinSizeStep = 10
+parameters.adaptiveThreshWinSizeMax = 35
+parameters.adaptiveThreshWinSizeStep = 5
 parameters.minCornerDistanceRate = 0.02
 parameters.polygonalApproxAccuracyRate = 0.03
 
@@ -152,6 +152,7 @@ def marker_watcher():
 
             # Only trigger if it's in the middle column
             if middle_left <= cx <= middle_right:
+                capture_photo(0)
                 print("DropZone FOUND in center column! Triggering precision landing...")
                 marker_found_flag.set()
                 break
@@ -195,9 +196,6 @@ def precision_land_pixel_offset():
     time.sleep(0.2)
     aruco_lat = vehicle.location.global_frame.lat
     aruco_lon = vehicle.location.global_frame.lon
-    capture_photo(0)
-    send_ned_velocity(-1, 0, -1)
-    time.sleep(2)
     capture_photo(1)
     while vehicle.armed:
         img = picam2.capture_array()
