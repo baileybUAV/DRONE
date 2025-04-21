@@ -326,9 +326,9 @@ def precision_land_pixel_offset():
                 telem_link.mav.send(msg)
                 time.sleep(15)
                 vehicle.mode = VehicleMode("LAND")
-                for _ in range(5):
+                for _ in range(20):
                     telem_link.mav.send(msg)
-                    time.sleep(1)
+                    time.sleep(0.25)
                 break
         else:
             print("Marker Lost. Returning to last known location")
