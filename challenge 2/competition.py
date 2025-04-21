@@ -18,7 +18,7 @@ import argparse
 import logging 
 
 logging.basicConfig(
-    filename='drone_mission_log.txt',
+    filename='Challenge_2_mission_log.txt',
     filemode='w',
     level=logging.INFO,
     format='%(asctime)s [%(levelname)s]: %(message)s',
