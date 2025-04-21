@@ -157,7 +157,11 @@ def marker_watcher():
                 print("DropZone found, but NOT in center column.")
                 possible_aruco_lat = vehicle.location.global_frame.lat
                 possible_aruco_lon = vehicle.location.global_frame.lon
-                logger.info(f"Possible DropZone Location: Lat {possible_aruco_lat}, Lon {possible_aruco_lon}") 
+                logger.info(f"Possible DropZone Location: Lat {possible_aruco_lat}, Lon {possible_aruco_lon}")
+        elif ids is not None:
+            print("Non-DropZone detected")
+            logger.info("Non-DropZone Detected")
+
         time.sleep(0.01)
 
 
@@ -242,7 +246,7 @@ def precision_land_pixel_offset():
                 break
         else:
             print("Marker Lost. Returning to last known location")
-            vehicle.simple_goto(LocationGlobalRelative(aruco_lat, aruco_lon, takeoff_altitude + 1))
+            vehicle.simple_goto(LocationGlobalRelative(aruco_lat, aruco_lon, takeoff_altitude + 2))
         time.sleep(0.1)
 
 # ------------------- MAIN MISSION -------------------
