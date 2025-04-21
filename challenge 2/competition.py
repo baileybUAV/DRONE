@@ -161,6 +161,9 @@ def marker_watcher():
                 possible_aruco_lat = vehicle.location.global_frame.lat
                 possible_aruco_lon = vehicle.location.global_frame.lon
                 logger.info(f"Possible DropZone Location: Lat {possible_aruco_lat}, Lon {possible_aruco_lon}") 
+        elif ids is not None:
+            print("Non-DropZone detected")
+            logger.info("Non-DropZone Detected")
         time.sleep(0.01)
 
 
@@ -333,11 +336,13 @@ def precision_land_pixel_offset():
         time.sleep(0.1)
 
 # ------------------- MAIN MISSION -------------------
-print("Starting Scout mission...")
-logger.info("Scout Mission Start")
-telem_link.mav.statustext_send(mavutil.mavlink.MAV_SEVERITY_INFO, b"Scout Mission start")
+for _ in range(5):
+    telem_link.mav.statustext_send(mavutil.mavlink.MAV_SEVERITY_INFO, b"Scout Mission start")
+    time.sleep(1)
 vehicle.mode = VehicleMode("GUIDED")
 manual_arm()
+print("Starting Scout mission...")
+logger.info("Scout Mission Start")
 takeoff(takeoff_altitude)
 
 
@@ -373,7 +378,7 @@ else:
 picam2.stop()
 vehicle.close()
 print("Scout Mission completed.")
-logger.info("Mission End")
+logger.info("Scout Mission End")
 exit()
 # ------------------- END OF SCRIPT -------------------
                 

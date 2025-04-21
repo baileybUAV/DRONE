@@ -26,10 +26,10 @@ logger = logging.getLogger()
 # ------------------- CONFIG -------------------
 takeoff_altitude = 3  # meters
 camera_resolution = (1600, 1080)
-marker_id = 3
+marker_id = 5
 marker_size = 0.253  # meters
 descent_speed = 0.2
-final_land_height = 3.5  # meters
+final_land_height = 2.5  # meters
 fast_descent_speed = 0.35
 slow_descent_speed = 0.25
 slow_down_altitude = 2
@@ -65,7 +65,12 @@ camera_matrix = np.loadtxt(calib_path + 'cameraMatrix.txt', delimiter=',')
 camera_distortion = np.loadtxt(calib_path + 'cameraDistortion.txt', delimiter=',')
 aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_6X6_250)
 parameters = aruco.DetectorParameters()
-
+parameters.maxErroneousBitsInBorderRate = 0.1
+parameters.adaptiveThreshWinSizeMin = 3
+parameters.adaptiveThreshWinSizeMax = 23
+parameters.adaptiveThreshWinSizeStep = 10
+parameters.minCornerDistanceRate = 0.02
+parameters.polygonalApproxAccuracyRate = 0.03
 
 def capture_photo(index=None):
     img = picam2.capture_array()
@@ -94,10 +99,10 @@ def takeoff(aTargetAltitude):
     while True:
         alt = vehicle.location.global_relative_frame.alt
         print(f"Altitude: {alt:.2f}")
-        if alt >= aTargetAltitude * 0.60:
+        if alt >= aTargetAltitude * 0.70:
             print("Reached target altitude")
             break
-        time.sleep(1)
+        time.sleep(0.1)
 
 def distance_to(target_location, current_location):
     dlat = target_location.lat - current_location.lat
@@ -110,7 +115,6 @@ def goto_waypoint(waypoint, num):
     while True:
         current = vehicle.location.global_relative_frame
         dist = distance_to(waypoint, current)
-        print(f"Distance to waypoint {num}: {dist:.2f}m")
         if dist < 1 or marker_found_flag.is_set():
             break
         time.sleep(0.01)
@@ -153,7 +157,11 @@ def marker_watcher():
                 print("DropZone found, but NOT in center column.")
                 possible_aruco_lat = vehicle.location.global_frame.lat
                 possible_aruco_lon = vehicle.location.global_frame.lon
-                logger.info(f"Possible DropZone Location: Lat {possible_aruco_lat}, Lon {possible_aruco_lon}") 
+                logger.info(f"Possible DropZone Location: Lat {possible_aruco_lat}, Lon {possible_aruco_lon}")
+        elif ids is not None:
+            print("Non-DropZone detected")
+            logger.info("Non-DropZone Detected")
+
         time.sleep(0.01)
 
 
@@ -168,7 +176,7 @@ def setup_telem_connection():
 
 
 telem_link = setup_telem_connection()
-
+ 
 # ------------------- PRECISION LANDING -------------------
 def send_ned_velocity(vx, vy, vz):
     msg = vehicle.message_factory.set_position_target_local_ned_encode(
@@ -185,7 +193,7 @@ def send_ned_velocity(vx, vy, vz):
 
 def precision_land_pixel_offset():
     print("Beginning precision landing...")
-    time.sleep(0.2)
+    time.sleep(0.25)
     aruco_lat = vehicle.location.global_frame.lat
     aruco_lon = vehicle.location.global_frame.lon
     capture_photo(1)
@@ -229,18 +237,22 @@ def precision_land_pixel_offset():
                     vy = dx * Kp
                     send_ned_velocity(vx, vy, 0.01)
             else:
+                aruco_lat = vehicle.location.global_frame.lat
+                aruco_lon = vehicle.location.global_frame.lon
+                print(f"DropZone Location: Lat {aruco_lat}, Lon {aruco_lon}")
+                logger.info(f"DropZone Location: Lat {aruco_lat}, Lon {aruco_lon}")
                 print("Reached final height. Switching to LAND.")
                 vehicle.mode = VehicleMode("LAND")
-                capture_photo(2)
                 break
         else:
             print("Marker Lost. Returning to last known location")
-            vehicle.simple_goto(LocationGlobalRelative(aruco_lat, aruco_lon, takeoff_altitude + 1))
+            vehicle.simple_goto(LocationGlobalRelative(aruco_lat, aruco_lon, takeoff_altitude + 1.5))
         time.sleep(0.1)
 
 # ------------------- MAIN MISSION -------------------
 print("Starting mission...")
 manual_arm()
+logger.info("Starting mission...")
 takeoff(takeoff_altitude)
 
 
@@ -275,6 +287,7 @@ else:
 
 picam2.stop()
 vehicle.close()
+logger.info("End of Mission...")
 print("Mission completed.")
 exit()
 # ------------------- END OF SCRIPT -------------------
