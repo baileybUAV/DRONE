@@ -154,12 +154,14 @@ def marker_watcher():
             if middle_left <= cx <= middle_right:
                 capture_photo(0)
                 print("DropZone FOUND in center column! Triggering precision landing...")
+                logger.info("DropZone Detected")
                 marker_found_flag.set()
                 break
             else:
                 print("DropZone found, but NOT in center column.")
                 possible_aruco_lat = vehicle.location.global_frame.lat
                 possible_aruco_lon = vehicle.location.global_frame.lon
+                logger.info("Possible DropZone Detected")
                 logger.info(f"Possible DropZone Location: Lat {possible_aruco_lat}, Lon {possible_aruco_lon}") 
         elif ids is not None:
             print("Non-DropZone detected")
