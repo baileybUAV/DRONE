@@ -102,10 +102,10 @@ def takeoff(aTargetAltitude):
     while True:
         alt = vehicle.location.global_relative_frame.alt
         print(f"Altitude: {alt:.2f}")
-        if alt >= aTargetAltitude * 0.90:
+        if alt >= aTargetAltitude * 0.70:
             print("Reached target altitude")
             break
-        time.sleep(1)
+        time.sleep(0.5)
 
 def distance_to(target_location, current_location):
     dlat = target_location.lat - current_location.lat
@@ -118,7 +118,6 @@ def goto_waypoint(waypoint, num):
     while True:
         current = vehicle.location.global_relative_frame
         dist = distance_to(waypoint, current)
-        print(f"Distance to waypoint {num}: {dist:.2f}m")
         if dist < 1 or marker_found_flag.is_set():
             break
         time.sleep(0.01)
