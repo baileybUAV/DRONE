@@ -260,18 +260,18 @@ watcher_thread = threading.Thread(target=marker_watcher, daemon=True)
 watcher_thread.start()
 
 waypoints = [
-LocationGlobalRelative(, , takeoff_altitude),
-LocationGlobalRelative(, , takeoff_altitude),
-LocationGlobalRelative(, , takeoff_altitude),
-LocationGlobalRelative(, , takeoff_altitude),
-LocationGlobalRelative(, , takeoff_altitude),
-LocationGlobalRelative(, , takeoff_altitude),
-LocationGlobalRelative(, , takeoff_altitude),
-LocationGlobalRelative(, , takeoff_altitude),
-LocationGlobalRelative(, , takeoff_altitude),
-LocationGlobalRelative(, , takeoff_altitude),
-LocationGlobalRelative(, , takeoff_altitude),
-LocationGlobalRelative(, , takeoff_altitude),
+LocationGlobalRelative(27.9867164, -82.3015954, takeoff_altitude),
+LocationGlobalRelative(27.9866868, -82.3018536, takeoff_altitude),
+LocationGlobalRelative(27.9866808, -82.3015948, takeoff_altitude),
+LocationGlobalRelative(27.9866494, -82.3018536, takeoff_altitude),
+LocationGlobalRelative(27.9866429, -82.3015948, takeoff_altitude),
+LocationGlobalRelative(27.9866145, -82.3018536, takeoff_altitude),
+LocationGlobalRelative(27.9866033, -82.3015948, takeoff_altitude),
+LocationGlobalRelative(27.9865790, -82.3018543, takeoff_altitude),
+LocationGlobalRelative(27.9865630, -82.3015934, takeoff_altitude),
+LocationGlobalRelative(27.9865405, -82.3018543, takeoff_altitude),
+LocationGlobalRelative(27.9865227, -82.3015934, takeoff_altitude),
+LocationGlobalRelative(27.9867175, -82.3018422, takeoff_altitude),
 ]
 
 for i, wp in enumerate(waypoints):
