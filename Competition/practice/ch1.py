@@ -133,8 +133,8 @@ def land():
 def marker_watcher():
     print("Marker watcher started...")
     frame_width = camera_resolution[0]
-    middle_left = int(0.1 * frame_width)      # 10% from the left
-    middle_right = int(0.9 * frame_width)       # 90% from the left
+    middle_left = int(0.2 * frame_width)      # 10% from the left
+    middle_right = int(0.8 * frame_width)       # 90% from the left
 
     while not marker_found_flag.is_set():
         img = picam2.capture_array()
