@@ -18,7 +18,7 @@ import argparse
 import logging 
 
 logging.basicConfig(
-    filename='Challenge_2_mission_log1.txt',
+    filename='Challenge_2_windymission_log1.txt',
     filemode='w',
     level=logging.INFO,
     format='%(asctime)s [%(levelname)s]: %(message)s',

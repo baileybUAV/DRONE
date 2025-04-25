@@ -32,12 +32,12 @@ camera_resolution = (1600, 1080)
 marker_id = 1
 marker_size = 0.253  # meters
 descent_speed = 0.2
-final_land_height = 1.5  # meters
+final_land_height = 1.75  # meters
 fast_descent_speed = 0.35
 slow_descent_speed = 0.25
 slow_down_altitude = 2
 far_center_threshold = 30
-near_center_threshold = 15
+near_center_threshold = 20
 far_Kp = 0.0015
 near_Kp = 0.001
 marker_found_flag = threading.Event()
@@ -321,15 +321,8 @@ def precision_land_pixel_offset():
                 vehicle.mode = VehicleMode("GUIDED")
                 vehicle.armed = True
                 takeoff(takeoff_altitude)
-                for _ in range(10):
-                    telem_link.mav.send(msg)
-                    time.sleep(0.25)
-                vehicle.simple_goto(LocationGlobalRelative(39.2345281, -77.5475764, takeoff_altitude))
-                telem_link.mav.send(msg)
+                vehicle.simple_goto(LocationGlobalRelative(39.2343131, -77.5476609, takeoff_altitude))
                 time.sleep(15)
-                for _ in range(20):
-                    telem_link.mav.send(msg)
-                    time.sleep(0.25)
                 vehicle.mode = VehicleMode("LAND")
                 for _ in range(20):
                     telem_link.mav.send(msg)

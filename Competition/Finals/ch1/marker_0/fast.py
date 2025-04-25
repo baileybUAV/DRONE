@@ -196,7 +196,6 @@ def precision_land_pixel_offset():
     time.sleep(0.25)
     aruco_lat = vehicle.location.global_frame.lat
     aruco_lon = vehicle.location.global_frame.lon
-    capture_photo(1)
     print(f"DropZone Location: Lat {aruco_lat}, Lon {aruco_lon}")
     logger.info(f"DropZone Location: Lat {aruco_lat}, Lon {aruco_lon}")
     vehicle.simple_goto(LocationGlobalRelative(aruco_lat, aruco_lon, takeoff_altitude))
