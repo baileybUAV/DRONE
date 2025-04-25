@@ -29,10 +29,10 @@ logger = logging.getLogger()
 # ------------------- CONFIG -------------------
 takeoff_altitude = 3  # meters
 camera_resolution = (1600, 1080)
-marker_id = 4
+marker_id = 0
 marker_size = 0.253  # meters
 descent_speed = 0.2
-final_land_height = 1.25  # meters
+final_land_height = 1.5  # meters
 fast_descent_speed = 0.35
 slow_descent_speed = 0.25
 slow_down_altitude = 2
