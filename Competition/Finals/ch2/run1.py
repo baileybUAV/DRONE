@@ -321,7 +321,7 @@ def precision_land_pixel_offset():
                 vehicle.mode = VehicleMode("GUIDED")
                 vehicle.armed = True
                 takeoff(takeoff_altitude)
-                vehicle.simple_goto(LocationGlobalRelative(39.2343131, -77.5476609, takeoff_altitude))
+                vehicle.simple_goto(LocationGlobalRelative(39.2345281, -77.5475764, takeoff_altitude))
                 telem_link.mav.send(msg)
                 time.sleep(15)
                 vehicle.mode = VehicleMode("LAND")
