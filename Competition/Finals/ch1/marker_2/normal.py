@@ -1,5 +1,3 @@
-                
-
 
 #BEST CODE 
 
@@ -15,29 +13,28 @@ import time
 import threading
 from picamera2 import Picamera2
 import argparse
-import logging 
+import logging
 
 logging.basicConfig(
-    filename='Challenge_2_mission_log1.txt',
+    filename='challenge1_mission_log1.txt',
     filemode='w',
     level=logging.INFO,
     format='%(asctime)s [%(levelname)s]: %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S'
 )
 logger = logging.getLogger()
-
 # ------------------- CONFIG -------------------
 takeoff_altitude = 3  # meters
 camera_resolution = (1600, 1080)
-marker_id = 0
+marker_id = 2
 marker_size = 0.253  # meters
 descent_speed = 0.2
-final_land_height = 1.5  # meters
+final_land_height = 2.5  # meters
 fast_descent_speed = 0.35
 slow_descent_speed = 0.25
 slow_down_altitude = 2
-far_center_threshold = 30
-near_center_threshold = 15
+far_center_threshold = 50
+near_center_threshold = 10
 far_Kp = 0.0015
 near_Kp = 0.001
 marker_found_flag = threading.Event()
@@ -70,8 +67,8 @@ aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_6X6_250)
 parameters = aruco.DetectorParameters()
 parameters.maxErroneousBitsInBorderRate = 0.1
 parameters.adaptiveThreshWinSizeMin = 3
-parameters.adaptiveThreshWinSizeMax = 35
-parameters.adaptiveThreshWinSizeStep = 5
+parameters.adaptiveThreshWinSizeMax = 23
+parameters.adaptiveThreshWinSizeStep = 10
 parameters.minCornerDistanceRate = 0.02
 parameters.polygonalApproxAccuracyRate = 0.03
 
@@ -105,7 +102,7 @@ def takeoff(aTargetAltitude):
         if alt >= aTargetAltitude * 0.70:
             print("Reached target altitude")
             break
-        time.sleep(0.5)
+        time.sleep(0.1)
 
 def distance_to(target_location, current_location):
     dlat = target_location.lat - current_location.lat
@@ -114,7 +111,7 @@ def distance_to(target_location, current_location):
 
 def goto_waypoint(waypoint, num):
     print(f"Going to waypoint {num}...")
-    vehicle.simple_goto(waypoint, airspeed = 10)
+    vehicle.simple_goto(waypoint,airspeed = 10)
     while True:
         current = vehicle.location.global_relative_frame
         dist = distance_to(waypoint, current)
@@ -136,8 +133,8 @@ def land():
 def marker_watcher():
     print("Marker watcher started...")
     frame_width = camera_resolution[0]
-    middle_left = int(0.2 * frame_width)      # 20% from the left
-    middle_right = int(0.8 * frame_width)       # 80% from the left
+    middle_left = int(0.1 * frame_width)      # 10% from the left
+    middle_right = int(0.9 * frame_width)       # 90% from the left
 
     while not marker_found_flag.is_set():
         img = picam2.capture_array()
@@ -160,13 +157,12 @@ def marker_watcher():
                 print("DropZone found, but NOT in center column.")
                 possible_aruco_lat = vehicle.location.global_frame.lat
                 possible_aruco_lon = vehicle.location.global_frame.lon
-                logger.info("Possible DropZone Detected")
-                logger.info(f"Possible DropZone Location: Lat {possible_aruco_lat}, Lon {possible_aruco_lon}") 
+                logger.info(f"Possible DropZone Location: Lat {possible_aruco_lat}, Lon {possible_aruco_lon}")
         elif ids is not None:
             print("Non-DropZone detected")
             logger.info("Non-DropZone Detected")
-        time.sleep(0.01)
 
+        time.sleep(0.01)
 
 
 def setup_telem_connection():
@@ -180,7 +176,7 @@ def setup_telem_connection():
 
 
 telem_link = setup_telem_connection()
-
+ 
 # ------------------- PRECISION LANDING -------------------
 def send_ned_velocity(vx, vy, vz):
     msg = vehicle.message_factory.set_position_target_local_ned_encode(
@@ -197,10 +193,10 @@ def send_ned_velocity(vx, vy, vz):
 
 def precision_land_pixel_offset():
     print("Beginning precision landing...")
-    time.sleep(0.2)
-    capture_photo(1)
+    time.sleep(0.25)
     aruco_lat = vehicle.location.global_frame.lat
     aruco_lon = vehicle.location.global_frame.lon
+    capture_photo(1)
     while vehicle.armed:
         img = picam2.capture_array()
         img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
@@ -214,7 +210,7 @@ def precision_land_pixel_offset():
             cy = int(np.mean(c[:, 1]))
             frame_center = (camera_resolution[0] // 2, camera_resolution[1] // 2)
             dx = cx - frame_center[0] + 15
-            dy = cy - frame_center[1] - 150  # Adjust for camera pos
+            dy = cy - frame_center[1] - 120  # Adjust for camera pos
             altitude = vehicle.rangefinder.distance or 10.0
             if altitude > slow_down_altitude:
                 descent_vz = fast_descent_speed
@@ -226,8 +222,14 @@ def precision_land_pixel_offset():
                 Kp = near_Kp
             if altitude > final_land_height:
                 if abs(dx) < center_threshold and abs(dy) < center_threshold:
-                    print("Marker centered. Descending...")
+                    print("Marker centered. Lnading...")
                     send_ned_velocity(0, 0, descent_vz)
+                    aruco_lat = vehicle.location.global_frame.lat
+                    aruco_lon = vehicle.location.global_frame.lon
+                    print(f"DropZone Location: Lat {aruco_lat}, Lon {aruco_lon}")
+                    logger.info(f"DropZone Location: Lat {aruco_lat}, Lon {aruco_lon}")
+                    vehicle.mode = VehicleMode("LAND")
+                    break
                     
                 else:
                     print("Centering marker...")
@@ -235,115 +237,22 @@ def precision_land_pixel_offset():
                     vy = dx * Kp
                     send_ned_velocity(vx, vy, 0.01)
             else:
+                aruco_lat = vehicle.location.global_frame.lat
+                aruco_lon = vehicle.location.global_frame.lon
+                print(f"DropZone Location: Lat {aruco_lat}, Lon {aruco_lon}")
+                logger.info(f"DropZone Location: Lat {aruco_lat}, Lon {aruco_lon}")
                 print("Reached final height. Switching to LAND.")
                 vehicle.mode = VehicleMode("LAND")
-                time.sleep(5)
-                print("Starting data transmission...")
-                start_time = time.time()
-                while time.time() - start_time < 120:
-                    if vehicle.gps_0.fix_type != 6:
-                         print("\nError: GPS does not have RTK Fixed")
-                         print("GPS STATUS: %s" % vehicle.gps_0.fix_type)
-                         sent = False
-                    else:
-                        print("RTK Fixed Obtained")
-                        time.sleep(5)
-                        for _ in range(5):
-                            #LOG LOCATION
-                            lat = vehicle.location.global_frame.lat
-                            lon = vehicle.location.global_frame.lon
-                            alt = vehicle.location.global_frame.alt
-                            rel_alt = vehicle.location.global_relative_frame.alt
-                            velocity_north = vehicle.velocity[0]
-                            velocity_east = vehicle.velocity[1]
-                            velocity_down = vehicle.velocity[2]
-                            covariance_matrix = np.full((36,), float('nan'), dtype=np.float32)
-                        
-                            msg = telem_link.mav.global_position_int_cov_encode(
-                                int(time.time() * 1e6),
-                                mavutil.mavlink.MAV_ESTIMATOR_TYPE_GPS,
-                                    int(lat * 1e7),
-                                    int(lon * 1e7),
-                                    int(alt * 1000),
-                                    int(rel_alt * 1000),
-                                    float(velocity_north),
-                                    float(velocity_east),
-                                    float(velocity_down),
-                                    covariance_matrix)
-
-                            telem_link.mav.send(msg)
-                            print("GPS STATUS: %s" % vehicle.gps_0.fix_type)
-                            print(f"Sent Aruco Location Data: Lat {lat}, Lon {lon}, Alt {alt}, VelN {velocity_north}, VelE {velocity_east}, VelD {velocity_down}")
-                            logger.info(f"Transmitting DropZone Aruco Location Data TO UGV: Lat {lat}, Lon {lon}, Alt {alt}")
-                            print("DropZone Location Sent!")
-                            time.sleep(1)
-                        sent = True
-                        break
-                         
-                if sent == False:
-                    for _ in range(5):
-                         #LOG LOCATION
-                        lat = vehicle.location.global_frame.lat
-                        lon = vehicle.location.global_frame.lon
-                        alt = vehicle.location.global_frame.alt
-                        rel_alt = vehicle.location.global_relative_frame.alt
-                        velocity_north = vehicle.velocity[0]
-                        velocity_east = vehicle.velocity[1]
-                        velocity_down = vehicle.velocity[2]
-                        covariance_matrix = np.full((36,), float('nan'), dtype=np.float32)
-                       
-                        msg = telem_link.mav.global_position_int_cov_encode(
-                            int(time.time() * 1e6),
-                            mavutil.mavlink.MAV_ESTIMATOR_TYPE_GPS,
-                                int(lat * 1e7),
-                                int(lon * 1e7),
-                                int(alt * 1000),
-                                int(rel_alt * 1000),
-                                float(velocity_north),
-                                float(velocity_east),
-                                float(velocity_down),
-                                covariance_matrix)
-
-                        telem_link.mav.send(msg)
-                        print("GPS STATUS: %s" % vehicle.gps_0.fix_type)
-                        print(f"Sent Aruco Location Data: Lat {lat}, Lon {lon}, Alt {alt}, VelN {velocity_north}, VelE {velocity_east}, VelD {velocity_down}")
-                        logger.info(f"Transmitting DropZone Aruco Location Data TO UGV: Lat {lat}, Lon {lon}, Alt {alt}")
-                        print("DropZone Location Sent!")
-                        time.sleep(1)
-
-                logger.info("DropZone Location Has been Transmitted to UGV")
-                time.sleep(1)
-                telem_link.mav.send(msg)
-                print("Transmission Time has Elapsed")
-                print("Returning to Launch Point...")
-                time.sleep(1)
-                telem_link.mav.send(msg)
-                vehicle.mode = VehicleMode("GUIDED")
-                vehicle.armed = True
-                takeoff(takeoff_altitude)
-                vehicle.simple_goto(LocationGlobalRelative(39.2343131, -77.5476609, takeoff_altitude))
-                telem_link.mav.send(msg)
-                time.sleep(15)
-                vehicle.mode = VehicleMode("LAND")
-                for _ in range(20):
-                    telem_link.mav.send(msg)
-                    time.sleep(0.25)
                 break
         else:
             print("Marker Lost. Returning to last known location")
-            vehicle.simple_goto(LocationGlobalRelative(aruco_lat, aruco_lon, takeoff_altitude + 1))
-            time.sleep(1)
-      
+            vehicle.simple_goto(LocationGlobalRelative(aruco_lat, aruco_lon, takeoff_altitude + 1.5))
         time.sleep(0.1)
 
 # ------------------- MAIN MISSION -------------------
-for _ in range(5):
-    telem_link.mav.statustext_send(mavutil.mavlink.MAV_SEVERITY_INFO, b"Scout Mission start")
-    time.sleep(1)
-vehicle.mode = VehicleMode("GUIDED")
+print("Starting mission...")
 manual_arm()
-print("Starting Scout mission...")
-logger.info("Scout Mission Start")
+logger.info("Starting mission...")
 takeoff(takeoff_altitude)
 
 
@@ -379,8 +288,7 @@ else:
 
 picam2.stop()
 vehicle.close()
-print("Scout Mission completed.")
-logger.info("Scout Mission End")
+logger.info("End of Mission...")
+print("Mission completed.")
 exit()
 # ------------------- END OF SCRIPT -------------------
-                
